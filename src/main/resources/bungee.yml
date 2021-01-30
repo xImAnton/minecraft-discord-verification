@@ -1,0 +1,4 @@
+name: Discord Verification
+version: ${project.version}
+main: de.ximanton.discordverification.DiscordVerification
+author: xImAnton_
