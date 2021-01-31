@@ -6,12 +6,13 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
 public class JoinListener implements Listener {
+
     @EventHandler
     public void onNetworkJoin(PreLoginEvent e) {
         e.registerIntent(DiscordVerification.getInstance());
         DiscordVerification.getInstance().getProxy().getScheduler().runAsync(DiscordVerification.getInstance(), () -> {
             String playerName = e.getConnection().getName();
-            if (!DiscordVerification.getInstance().isPlayerVerified(playerName)) {
+            if (!DiscordVerification.getInstance().getDB().isPlayerVerified(playerName)) {
                 e.setCancelled(true);
                 e.setCancelReason(TextComponent.fromLegacyText(DiscordVerification.getInstance().getKickMessage().replace("%name%", playerName)));
                 DiscordVerification.getInstance().getProxy().getLogger().warning("Unverified Player " + playerName + " tried to connect to the Server");

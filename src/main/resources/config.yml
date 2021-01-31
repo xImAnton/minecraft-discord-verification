@@ -1,2 +1,5 @@
 database-path: db.db
 kick-message: You are not verified!
+discord-token:
+kick-players-on-unverify: true
+guild-id:

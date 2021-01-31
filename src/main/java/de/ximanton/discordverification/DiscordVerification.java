@@ -1,6 +1,10 @@
 package de.ximanton.discordverification;
 
+import de.ximanton.discordverification.commands.*;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -8,40 +12,87 @@ import net.md_5.bungee.config.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.file.Files;
-import java.sql.*;
 
+public class DiscordVerification extends Plugin {
 
-public final class DiscordVerification extends Plugin {
+    public static DiscordVerification INSTANCE;
 
-    private static DiscordVerification INSTANCE;
+    private DatabaseConnector db;
     private String kickMessage;
     private String dbPath;
+    private String discordToken;
+    private DiscordBot discord;
+    private boolean kickPlayersOnUnverify;
+    private BigInteger guildId;
+
+    public DiscordVerification() {
+        INSTANCE = this;
+    }
 
     public static DiscordVerification getInstance() {
         return INSTANCE;
     }
 
-    public DiscordVerification() {
-        DiscordVerification.INSTANCE = this;
-    }
-
     @Override
     public void onEnable() {
         ensureConfigExisting();
-        setKickMessage();
-        setDBPath();
+        reloadConfig();
         getProxy().getPluginManager().registerListener(this, new JoinListener());
+        registerCommands();
+        if (discordToken != null) {
+            if (!discordToken.isEmpty()) {
+                discord = new DiscordBot(discordToken);
+                discord.start();
+            }
+        }
+        boolean createdDB = false;
+        File f = new File(dbPath);
+        if (!f.exists()) {
+            try {
+                f.createNewFile();
+                createdDB = true;
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+        this.db = new DatabaseConnector();
+        if (createdDB) db.resetDB();
     }
 
-    private Connection openConnection() {
+    private void registerCommands() {
+        PluginManager pluginManager = getProxy().getPluginManager();
+        pluginManager.registerCommand(this, new ListVerifiedPlayersCommand());
+        pluginManager.registerCommand(this, new CheckPlayerVerifiedCommand());
+        pluginManager.registerCommand(this, new UnverifyCommand());
+        pluginManager.registerCommand(this, new VerifyCommand());
+        pluginManager.registerCommand(this, new ClearCommand());
+    }
+
+    public DatabaseConnector getDB() {
+        return db;
+    }
+
+    public boolean isKickPlayersOnUnverify() {
+        return kickPlayersOnUnverify;
+    }
+
+    private void reloadConfig() {
         try {
-            Class.forName("org.sqlite.JDBC");
-            return DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
+            Configuration config = getConfig();
+            dbPath = config.getString("database-path");
+            kickMessage = config.getString("kick-message");
+            discordToken = config.getString("discord-token");
+            kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify");
+            guildId = BigInteger.valueOf(config.getLong("guild-id"));
+        } catch (IOException exception) {
+            exception.printStackTrace();
         }
-        return null;
+    }
+
+    public BigInteger getGuildId() {
+        return guildId;
     }
 
     private void ensureConfigExisting() {
@@ -64,47 +115,29 @@ public final class DiscordVerification extends Plugin {
         return kickMessage;
     }
 
+    public String getDbPath() {
+        return dbPath;
+    }
+
     private Configuration getConfig() throws IOException {
         return ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
     }
 
-    private void setDBPath() {
-        try {
-            dbPath = getConfig().getString("database-path");
-        } catch (IOException exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    private void setKickMessage() {
-        try {
-            kickMessage = getConfig().getString("kick-message");
-        } catch (IOException exception) {
-            exception.printStackTrace();
-        }
-    }
-
     @Override
     public void onDisable() {
+        db.close();
+        discord.interrupt();
     }
 
-    public boolean isPlayerVerified(String playerName) {
-        getProxy().getLogger().info("Checking player " + playerName);
-        try {
-            Connection connection = openConnection();
-            if (connection == null) {
-                return false;
+    public void kickPlayer(String ign, String reason) {
+        for (ProxiedPlayer player : getProxy().getPlayers()) {
+            if (player.getName().equalsIgnoreCase(ign)) {
+                player.disconnect(TextComponent.fromLegacyText(reason));
             }
-            Statement cmd = connection.createStatement();
-            ResultSet rs = cmd.executeQuery("SELECT * FROM verified_users WHERE ign = \"" + playerName.toLowerCase()+ "\"");
-
-            boolean isVerified = rs.next();
-            connection.close();
-
-            return isVerified;
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return false;
+    }
+
+    public void kickPlayer(String ign) {
+        kickPlayer(ign, "You have been unverified!");
     }
 }
