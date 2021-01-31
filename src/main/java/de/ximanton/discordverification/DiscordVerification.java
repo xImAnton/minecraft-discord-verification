@@ -15,6 +15,9 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 
+/**
+ * The Main plugin class
+ */
 public class DiscordVerification extends Plugin {
 
     public static DiscordVerification INSTANCE;
@@ -35,6 +38,10 @@ public class DiscordVerification extends Plugin {
         return INSTANCE;
     }
 
+    /**
+     * Called by bungee on plugin enable
+     * Setups the plugin, the database connection and discord and reads the config file
+     */
     @Override
     public void onEnable() {
         ensureConfigExisting();
@@ -61,6 +68,9 @@ public class DiscordVerification extends Plugin {
         if (createdDB) db.resetDB();
     }
 
+    /**
+     * Registers all plugin commands to the proxy plugin manager
+     */
     private void registerCommands() {
         PluginManager pluginManager = getProxy().getPluginManager();
         pluginManager.registerCommand(this, new ListVerifiedPlayersCommand());
@@ -78,6 +88,10 @@ public class DiscordVerification extends Plugin {
         return kickPlayersOnUnverify;
     }
 
+
+    /**
+     * Reads values from the config file and sets the corresponding variables
+     */
     private void reloadConfig() {
         try {
             Configuration config = getConfig();
@@ -95,6 +109,10 @@ public class DiscordVerification extends Plugin {
         return guildId;
     }
 
+
+    /**
+     * Checks if a config file is existing and creates one if not
+     */
     private void ensureConfigExisting() {
         if (!getDataFolder().exists())
             getDataFolder().mkdir();
@@ -123,12 +141,23 @@ public class DiscordVerification extends Plugin {
         return ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
     }
 
+
+    /**
+     * Called by bungee on plugin disable
+     * Closes database and discord connections
+     */
     @Override
     public void onDisable() {
         db.close();
         discord.interrupt();
     }
 
+
+    /**
+     * Shorthand for kicking players by username from the server
+     * @param ign the player ign
+     * @param reason the kick message that is shown up on the client
+     */
     public void kickPlayer(String ign, String reason) {
         for (ProxiedPlayer player : getProxy().getPlayers()) {
             if (player.getName().equalsIgnoreCase(ign)) {
@@ -137,6 +166,11 @@ public class DiscordVerification extends Plugin {
         }
     }
 
+
+    /**
+     * Kicks player with default kick message
+     * @param ign the player ign
+     */
     public void kickPlayer(String ign) {
         kickPlayer(ign, "You have been unverified!");
     }

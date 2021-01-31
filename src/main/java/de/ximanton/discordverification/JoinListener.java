@@ -12,6 +12,7 @@ public class JoinListener implements Listener {
         e.registerIntent(DiscordVerification.getInstance());
         DiscordVerification.getInstance().getProxy().getScheduler().runAsync(DiscordVerification.getInstance(), () -> {
             String playerName = e.getConnection().getName();
+            // Check if player is verified, if not disconnect him
             if (!DiscordVerification.getInstance().getDB().isPlayerVerified(playerName)) {
                 e.setCancelled(true);
                 e.setCancelReason(TextComponent.fromLegacyText(DiscordVerification.getInstance().getKickMessage().replace("%name%", playerName)));
