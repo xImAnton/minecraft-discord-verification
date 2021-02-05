@@ -17,7 +17,7 @@ Users on your server can use the !verify \<ign\> command to verify their minecra
 
 ## Proxy Commands
 
-| Syntax   | Bungee-Permission   | Description |
+| Syntax   | Bungeecord-Permission   | Description |
 | :--- | ---- | ---- |
 | isverified \<ign\> | discordverification.check |Returns, whether the player is verified or not|
 | clearverifications | discordverification.clear |Clears all verifications.|
