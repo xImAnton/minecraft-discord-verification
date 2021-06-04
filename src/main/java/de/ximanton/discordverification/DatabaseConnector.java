@@ -10,7 +10,7 @@ import java.util.Set;
  */
 public class DatabaseConnector {
 
-    private Connection connection;
+    private final Connection connection;
 
     /**
      * Checks if a player is verified
@@ -23,11 +23,17 @@ public class DatabaseConnector {
             if (connection == null) {
                 return false;
             }
-            Statement cmd = connection.createStatement();
+            PreparedStatement searchPlayer = connection.prepareStatement("SELECT * FROM verified_users WHERE ign = ?;");
+            searchPlayer.setString(1, playerName.toLowerCase());
             // Look for players with the given ign in the db
-            ResultSet rs = cmd.executeQuery("SELECT * FROM verified_users WHERE ign = \"" + playerName.toLowerCase()+ "\"");
+            ResultSet isVerifiedResult = searchPlayer.executeQuery();
             // Return whether a result has been found or not
-            return rs.next();
+            boolean result = isVerifiedResult.next();
+
+            searchPlayer.close();
+            isVerifiedResult.close();
+
+            return result;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -71,32 +77,56 @@ public class DatabaseConnector {
      */
     public InsertPlayerReturn insertPlayer(String playerName, BigInteger authorId) {
         try {
-            Statement stmt = connection.createStatement();
             // Checks if the ign is already verified
-            ResultSet rs = stmt.executeQuery("SELECT * FROM verified_users WHERE ign = \"" + playerName.toLowerCase() + "\";");
+            PreparedStatement checkIGNStatement = connection.prepareStatement("SELECT * FROM verified_users WHERE ign = ?;");
+            checkIGNStatement.setString(1, playerName.toLowerCase());
+            ResultSet checkPlayerResult = checkIGNStatement.executeQuery();
+
             // if so, return
-            if (rs.next()) {
-                rs.close();
-                stmt.close();
+            if (checkPlayerResult.next()) {
+                checkPlayerResult.close();
+                checkIGNStatement.close();
                 return InsertPlayerReturn.ALREADY_EXISTS;
             }
+
+            checkPlayerResult.close();
+            checkIGNStatement.close();
+
             // Check if the discord user already had an verified account
-            rs = stmt.executeQuery("SELECT * FROM verified_users WHERE discord = " + authorId.toString() + ";");
-            if (rs.next()) {
+            PreparedStatement checkDiscordUserAlreadyVerifiedStatement = connection.prepareStatement("SELECT * FROM verified_users WHERE discord = ?;");
+            checkDiscordUserAlreadyVerifiedStatement.setInt(1, authorId.intValue());
+            ResultSet discordExistsResult = checkDiscordUserAlreadyVerifiedStatement.executeQuery();
+            if (discordExistsResult.next()) {
                 if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
-                    DiscordVerification.getInstance().kickPlayer(rs.getString("ign"), "Another Player has been verified with your discord account!");
+                    DiscordVerification.getInstance().kickPlayer(discordExistsResult.getString("ign"), "Another Player has been verified with your discord account!");
                 }
                 // Override previous verified ign
-                stmt.executeUpdate("DELETE FROM verified_users WHERE discord = " + authorId.toString() + ";");
-                stmt.executeUpdate("INSERT INTO verified_users(ign, verified, discord) VALUES (\"" + playerName.toLowerCase() + "\", " + System.currentTimeMillis() / 1000 + ", " + authorId + ");");
-                rs.close();
-                stmt.close();
+                PreparedStatement updateIgnStatement = connection.prepareStatement("UPDATE verified_users SET ign = ? WHERE discord = ?;");
+                updateIgnStatement.setString(1, playerName.toLowerCase());
+                updateIgnStatement.setInt(2, authorId.intValue());
+
+                updateIgnStatement.executeUpdate();
+
+                discordExistsResult.close();
+                updateIgnStatement.close();
+                checkDiscordUserAlreadyVerifiedStatement.close();
+                discordExistsResult.close();
                 return InsertPlayerReturn.OVERRIDDEN;
             }
+
+            discordExistsResult.close();
+            checkDiscordUserAlreadyVerifiedStatement.close();
+
+
             // If neither the ign already existed nor the discord user had an verified account, insert the ign
-            stmt.executeUpdate("INSERT INTO verified_users(ign, verified, discord) VALUES (\"" + playerName.toLowerCase() + "\", " + System.currentTimeMillis() / 1000 + ", " + authorId + ");");
-            rs.close();
-            stmt.close();
+            PreparedStatement addUserStatement = connection.prepareStatement("INSERT INTO verified_users(ign, verified, discord) VALUES (?, ?, ?);");
+            addUserStatement.setString(1, playerName.toLowerCase());
+            addUserStatement.setInt(2, (int) (System.currentTimeMillis() / 1000));
+            addUserStatement.setInt(3, authorId.intValue());
+
+            addUserStatement.executeUpdate();
+            addUserStatement.close();
+
             return InsertPlayerReturn.OK;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -110,17 +140,28 @@ public class DatabaseConnector {
      */
     public void removeAccountOfUser(BigInteger userId) {
         try {
-            Statement stmt = connection.createStatement();
             // Check the ign of the user to remove to kick him on unverify
             if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
-                ResultSet rs = stmt.executeQuery("SELECT * FROM verified_users WHERE discord = " + userId.toString() + ";");
-                if (rs.next()) {
-                    DiscordVerification.getInstance().kickPlayer(rs.getString("ign"), "You left the Discord Server!");
+                PreparedStatement getDiscordUserIGN = connection.prepareStatement("SELECT * FROM verified_users WHERE discord = ?;");
+                getDiscordUserIGN.setInt(1, userId.intValue());
+
+                ResultSet playerIgnResult = getDiscordUserIGN.executeQuery();
+                getDiscordUserIGN.close();
+                if (playerIgnResult.next()) {
+                    playerIgnResult.close();
+                    DiscordVerification.getInstance().kickPlayer(playerIgnResult.getString("ign"), "You left the Discord Server!");
+                } else {
+                    playerIgnResult.close();
+                    return;
                 }
             }
+
             // Delete the users record
-            stmt.executeUpdate("DELETE FROM verified_users WHERE discord = " + userId + ";");
-            stmt.close();
+            PreparedStatement deleteUser = connection.prepareStatement("DELETE FROM verified_users WHERE discord = ?;");
+
+            deleteUser.setInt(1, userId.intValue());
+            deleteUser.executeUpdate();
+            deleteUser.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -139,6 +180,8 @@ public class DatabaseConnector {
             while (rs.next()) {
                 players.add(rs.getString("ign"));
             }
+            stmt.close();
+            rs.close();
             return players;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -153,13 +196,26 @@ public class DatabaseConnector {
      */
     public boolean unverify(String player) {
         try {
-            Statement stmt = connection.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM verified_users WHERE ign = \"" + player.toLowerCase() + "\";");
-            if (!rs.next()) return false;
-            if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
-                DiscordVerification.getInstance().kickPlayer(player, "You have been unverified!");
+            PreparedStatement checkPlayerVerified = connection.prepareStatement("SELECT * FROM verified_users WHERE ign = ?;");
+            checkPlayerVerified.setString(1, player.toLowerCase());
+            ResultSet rs = checkPlayerVerified.executeQuery();
+            checkPlayerVerified.close();
+
+            if (!rs.next()) {
+                rs.close();
+                return false;
             }
-            stmt.executeUpdate("DELETE FROM verified_users WHERE ign = \"" + player.toLowerCase() + "\";");
+            if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
+                DiscordVerification.getInstance().kickPlayer(player);
+            }
+
+            rs.close();
+
+            PreparedStatement deletePlayer = connection.prepareStatement("DELETE FROM verified_users WHERE ign = ?;");
+            deletePlayer.setString(1, player.toLowerCase());
+
+            deletePlayer.executeUpdate();
+            deletePlayer.close();
             return true;
         } catch (SQLException throwables) {
             throwables.printStackTrace();

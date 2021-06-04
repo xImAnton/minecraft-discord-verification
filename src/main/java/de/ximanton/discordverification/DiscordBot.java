@@ -47,7 +47,7 @@ public class DiscordBot extends Thread {
                 String returnMsg;
                 switch (status) {
                     case ALREADY_EXISTS:
-                        returnMsg = ":x: That minecraft account is already verified";
+                        returnMsg = ":woman_shrugging: That minecraft account is already verified";
                         break;
                     case OK:
                         returnMsg = ":white_check_mark: You have been verified!";
@@ -59,7 +59,7 @@ public class DiscordBot extends Thread {
                         returnMsg = ":file_folder: There was an error talking to the database";
                         break;
                     default:
-                        returnMsg = ":x: There was an error";
+                        returnMsg = ":x: An error occurred";
                 }
                 msg.getChannel().block().createMessage(returnMsg).block();
             } else {
@@ -85,6 +85,7 @@ public class DiscordBot extends Thread {
         // login to discord
         this.gateway = client.login().block();
         // Register events
+        assert gateway != null;
         gateway.on(MessageCreateEvent.class).subscribe(this::onMessage);
         gateway.on(ReadyEvent.class).subscribe(e -> DiscordVerification.getInstance().getProxy().getLogger().info("Discord is ready!"));
         gateway.on(MemberLeaveEvent.class).subscribe(this::onMemberLeave);
