@@ -43,7 +43,7 @@ public class DiscordBot extends Thread {
                     return;
                 }
                 // Try to insert player
-                InsertPlayerReturn status = DiscordVerification.getInstance().getDB().insertPlayer(playerName, msg.getAuthor().get().getId().asBigInteger());
+                InsertPlayerReturn status = DiscordVerification.getInstance().getDB().insertPlayer(playerName, msg.getAuthor().get().getId().asBigInteger(), false);
                 String returnMsg;
                 switch (status) {
                     case ALREADY_EXISTS:
@@ -57,6 +57,9 @@ public class DiscordBot extends Thread {
                         break;
                     case ERROR:
                         returnMsg = ":file_folder: There was an error talking to the database";
+                        break;
+                    case LIMIT_REACHED:
+                        returnMsg = ":chart_with_downwards_trend: The maximal player limit was reached! Too late";
                         break;
                     default:
                         returnMsg = ":x: An error occurred";

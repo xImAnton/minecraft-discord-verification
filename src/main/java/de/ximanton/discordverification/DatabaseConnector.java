@@ -100,7 +100,7 @@ public class DatabaseConnector {
     }
 
     private void addUser(String ign, BigInteger discordId) throws SQLException {
-        PreparedStatement addUserStatement = connection.prepareStatement("INSERT INTO verified_users(ign, verified, discord) VALUES (?, ?, ?);");
+        PreparedStatement addUserStatement = connection.prepareStatement("INSERT INTO verified_users (ign, verified, discord) VALUES (?, ?, ?);");
         addUserStatement.setString(1, ign.toLowerCase());
         addUserStatement.setInt(2, (int) (System.currentTimeMillis() / 1000));
         addUserStatement.setInt(3, discordId.intValue());
@@ -109,13 +109,25 @@ public class DatabaseConnector {
         addUserStatement.close();
     }
 
+    private int getVerificationCount() throws SQLException {
+        Statement countStatement = connection.createStatement();
+        ResultSet results = countStatement.executeQuery("SELECT COUNT(*) FROM verified_users");
+
+        int out = results.getInt(1);
+
+        countStatement.close();
+        results.close();
+
+        return out;
+    }
+
     /**
      * Creates a new verification
      * @param playerName The player ign to verify
      * @param authorId The discord user id to assign
      * @return The status of the insertion
      */
-    public InsertPlayerReturn insertPlayer(String playerName, BigInteger authorId) {
+    public InsertPlayerReturn insertPlayer(String playerName, BigInteger authorId, boolean ignoreLimit) {
         try {
             // Checks if the ign is already verified
             // if so, return
@@ -132,6 +144,10 @@ public class DatabaseConnector {
                 // Override previous verified ign
                 updatePlayerIGN(playerName, authorId);
                 return InsertPlayerReturn.OVERRIDDEN;
+            }
+
+            if ((DiscordVerification.getInstance().getVerificationLimit() > 0 && DiscordVerification.getInstance().getVerificationLimit() <= getVerificationCount()) && !ignoreLimit) {
+                return InsertPlayerReturn.LIMIT_REACHED;
             }
 
             // If neither the ign already existed nor the discord user had an verified account, insert the ign

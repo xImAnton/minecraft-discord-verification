@@ -29,7 +29,7 @@ public class VerifyCommand extends Command {
             sender.sendMessage(TextComponent.fromLegacyText("this player doesn't exist"));
             return;
         }
-        DiscordVerification.getInstance().getDB().insertPlayer(args[0], BigInteger.valueOf(0));
+        DiscordVerification.getInstance().getDB().insertPlayer(args[0], BigInteger.valueOf(0), true);
         sender.sendMessage(TextComponent.fromLegacyText(args[0] + " has been verified"));
     }
 }

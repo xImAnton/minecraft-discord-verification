@@ -20,6 +20,11 @@ public enum InsertPlayerReturn {
     /**
      * an error occurred while talking to the database
      */
-    ERROR;
+    ERROR,
+
+    /**
+     * the verification limit was exceeded
+     */
+    LIMIT_REACHED;
 
 }

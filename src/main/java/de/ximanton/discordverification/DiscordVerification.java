@@ -29,6 +29,7 @@ public class DiscordVerification extends Plugin {
     private DiscordBot discord;
     private boolean kickPlayersOnUnverify;
     private BigInteger guildId;
+    private int verificationLimit;
 
     public DiscordVerification() {
         INSTANCE = this;
@@ -100,6 +101,7 @@ public class DiscordVerification extends Plugin {
             discordToken = config.getString("discord-token");
             kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify");
             guildId = BigInteger.valueOf(config.getLong("guild-id"));
+            verificationLimit = config.getInt("verification-limit");
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -166,6 +168,9 @@ public class DiscordVerification extends Plugin {
         }
     }
 
+    public int getVerificationLimit() {
+        return verificationLimit;
+    }
 
     /**
      * Kicks player with default kick message
