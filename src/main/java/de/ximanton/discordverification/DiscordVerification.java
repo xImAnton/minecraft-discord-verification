@@ -1,6 +1,7 @@
 package de.ximanton.discordverification;
 
 import de.ximanton.discordverification.commands.*;
+import de.ximanton.discordverification.discord.DiscordBot;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -83,6 +84,10 @@ public class DiscordVerification extends Plugin {
 
     public DatabaseConnector getDB() {
         return db;
+    }
+
+    public DiscordBot getDiscord() {
+        return discord;
     }
 
     public boolean isKickPlayersOnUnverify() {

@@ -6,8 +6,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.plugin.Command;
 import de.ximanton.discordverification.DiscordVerification;
 
-import java.math.BigInteger;
-
 public class VerifyCommand extends Command {
 
     public VerifyCommand() {
@@ -29,7 +27,7 @@ public class VerifyCommand extends Command {
             sender.sendMessage(TextComponent.fromLegacyText("this player doesn't exist"));
             return;
         }
-        DiscordVerification.getInstance().getDB().insertPlayer(args[0], BigInteger.valueOf(0), true);
+        DiscordVerification.getInstance().getDB().insertPlayer(args[0], 0L, true);
         sender.sendMessage(TextComponent.fromLegacyText(args[0] + " has been verified"));
     }
 }

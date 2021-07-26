@@ -1,6 +1,5 @@
 package de.ximanton.discordverification;
 
-import java.math.BigInteger;
 import java.sql.*;
 import java.util.HashSet;
 import java.util.Optional;
@@ -72,26 +71,20 @@ public class DatabaseConnector {
         }
     }
 
-    private void updatePlayerIGN(String newIgn, BigInteger discordId) throws SQLException {
+    private void updatePlayerIGN(String newIgn, long discordId) throws SQLException {
         PreparedStatement updateIgnStatement = connection.prepareStatement("UPDATE verified_users SET ign = ? WHERE discord = ?;");
         updateIgnStatement.setString(1, newIgn.toLowerCase());
-        updateIgnStatement.setInt(2, discordId.intValue());
+        updateIgnStatement.setLong(2, discordId);
         updateIgnStatement.executeUpdate();
         updateIgnStatement.close();
     }
 
-    private Optional<String> isDiscordUserVerified(BigInteger discordId) throws SQLException {
+    public Optional<String> getUserIGN(long discordId) throws SQLException {
         PreparedStatement checkDiscordUserAlreadyVerifiedStatement = connection.prepareStatement("SELECT * FROM verified_users WHERE discord = ?;");
-        checkDiscordUserAlreadyVerifiedStatement.setInt(1, discordId.intValue());
+        checkDiscordUserAlreadyVerifiedStatement.setLong(1, discordId);
         ResultSet discordExistsResult = checkDiscordUserAlreadyVerifiedStatement.executeQuery();
-        boolean res = discordExistsResult.next();
 
-        Optional<String> out;
-        if (res) {
-            out = Optional.of(discordExistsResult.getString("ign"));
-        } else {
-            out = Optional.empty();
-        }
+        Optional<String> out = discordExistsResult.next() ? Optional.of(discordExistsResult.getString("ign")) : Optional.empty();
 
         discordExistsResult.close();
         checkDiscordUserAlreadyVerifiedStatement.close();
@@ -99,11 +92,11 @@ public class DatabaseConnector {
         return out;
     }
 
-    private void addUser(String ign, BigInteger discordId) throws SQLException {
+    private void addUser(String ign, long discordId) throws SQLException {
         PreparedStatement addUserStatement = connection.prepareStatement("INSERT INTO verified_users (ign, verified, discord) VALUES (?, ?, ?);");
         addUserStatement.setString(1, ign.toLowerCase());
         addUserStatement.setInt(2, (int) (System.currentTimeMillis() / 1000));
-        addUserStatement.setInt(3, discordId.intValue());
+        addUserStatement.setLong(3, discordId);
 
         addUserStatement.executeUpdate();
         addUserStatement.close();
@@ -121,13 +114,26 @@ public class DatabaseConnector {
         return out;
     }
 
+    public long getUserIdForIGN(String ign) throws SQLException {
+        PreparedStatement getUserStatement = connection.prepareStatement("SELECT discord FROM verified_users WHERE ign = ?;");
+        getUserStatement.setString(1, ign);
+        ResultSet results = getUserStatement.executeQuery();
+
+        long userId = results.next() ? results.getLong(1) : 0;
+
+        getUserStatement.close();
+        results.close();
+
+        return userId;
+    }
+
     /**
      * Creates a new verification
      * @param playerName The player ign to verify
      * @param authorId The discord user id to assign
      * @return The status of the insertion
      */
-    public InsertPlayerReturn insertPlayer(String playerName, BigInteger authorId, boolean ignoreLimit) {
+    public InsertPlayerReturn insertPlayer(String playerName, long authorId, boolean ignoreLimit) {
         try {
             // Checks if the ign is already verified
             // if so, return
@@ -136,7 +142,7 @@ public class DatabaseConnector {
             }
 
             // Check if the discord user already had an verified account
-            Optional<String> isUserVerified = isDiscordUserVerified(authorId);
+            Optional<String> isUserVerified = getUserIGN(authorId);
             if (isUserVerified.isPresent()) {
                 if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
                     DiscordVerification.getInstance().kickPlayer(isUserVerified.get(), "Another Player has been verified with your discord account!");
@@ -160,10 +166,10 @@ public class DatabaseConnector {
         return InsertPlayerReturn.ERROR;
     }
 
-    public void deleteUser(BigInteger userId) throws SQLException {
+    public void deleteUser(long userId) throws SQLException {
         PreparedStatement deleteUser = connection.prepareStatement("DELETE FROM verified_users WHERE discord = ?;");
 
-        deleteUser.setInt(1, userId.intValue());
+        deleteUser.setLong(1, userId);
         deleteUser.executeUpdate();
         deleteUser.close();
     }
@@ -180,11 +186,11 @@ public class DatabaseConnector {
      * Unverifies a minecraft account by discord user id
      * @param userId The discord user id
      */
-    public void removeAccountOfUser(BigInteger userId) {
+    public void removeAccountOfUser(long userId) {
         try {
             // Check the ign of the user to remove to kick him on unverify
             if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
-                Optional<String> userIGN = isDiscordUserVerified(userId);
+                Optional<String> userIGN = getUserIGN(userId);
                 if (userIGN.isPresent()) {
                     DiscordVerification.getInstance().kickPlayer(userIGN.get(), "You left the Discord Server!");
                 } else {
@@ -253,7 +259,7 @@ public class DatabaseConnector {
         try {
             Statement statement = connection.createStatement();
             statement.executeUpdate("DROP TABLE IF EXISTS verified_users");
-            statement.executeUpdate("CREATE TABLE verified_users (id INTEGER PRIMARY KEY, ign TEXT, verified INTEGER, discord INTEGER);");
+            statement.executeUpdate("CREATE TABLE verified_users (id INTEGER PRIMARY KEY, ign TEXT, verified INTEGER, discord LONG);");
             statement.closeOnCompletion();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
