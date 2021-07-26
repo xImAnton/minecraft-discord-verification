@@ -42,6 +42,7 @@ The SQLite3 database is created in the proxy root directory. Its name is by defa
 | :----------------------- | ------- | ------------------------------------------------------------ | --------------------- |
 | database-path            | String  | The file path of the database file. Gets created automatically if not exists. | db.db                 |
 | kick-message             | String  | The message that is displayed when a player is disconnected because they're not verified. You can maybe link your discord here. | You are not verified! |
+| verification-limit       | Integer | The maximal count of verified players. Set negative to disable | -1 |
 | discord-token            | String  | The discord bot token from the discord developer center      |                       |
 | kick-players-on-unverify | boolean | Whether to kick players instantly when they are getting unverified. | true                  |
 | guild-id                 | long    | The discord guild id snowflake of your server                |                       |
