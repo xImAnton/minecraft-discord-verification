@@ -6,6 +6,8 @@ import discord4j.core.event.domain.guild.MemberLeaveEvent;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.presence.Activity;
+import discord4j.core.object.presence.Presence;
 
 
 /**
@@ -90,8 +92,13 @@ public class DiscordBot extends Thread {
         // Register events
         assert gateway != null;
         gateway.on(MessageCreateEvent.class).subscribe(this::onMessage);
-        gateway.on(ReadyEvent.class).subscribe(e -> DiscordVerification.getInstance().getProxy().getLogger().info("Discord is ready!"));
+        gateway.on(ReadyEvent.class).subscribe(this::onReady);
         gateway.on(MemberLeaveEvent.class).subscribe(this::onMemberLeave);
+    }
+
+    private void onReady(ReadyEvent readyEvent) {
+        DiscordVerification.getInstance().getProxy().getLogger().info("Discord is ready!");
+        gateway.updatePresence(Presence.online(Activity.listening("!verify"))).block();
     }
 
     /**
