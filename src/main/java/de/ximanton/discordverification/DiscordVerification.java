@@ -24,13 +24,13 @@ public class DiscordVerification extends Plugin {
     public static DiscordVerification INSTANCE;
 
     private DatabaseConnector db;
-    private String kickMessage;
     private String dbPath;
     private String discordToken;
     private DiscordBot discord;
     private boolean kickPlayersOnUnverify;
     private BigInteger guildId;
     private int verificationLimit;
+    private MessageManager messages;
 
     public DiscordVerification() {
         INSTANCE = this;
@@ -48,6 +48,13 @@ public class DiscordVerification extends Plugin {
     public void onEnable() {
         ensureConfigExisting();
         reloadConfig();
+
+        try {
+            messages = new MessageManager(getConfig().getSection("messages"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         getProxy().getPluginManager().registerListener(this, new JoinListener());
         registerCommands();
         if (discordToken != null) {
@@ -82,6 +89,10 @@ public class DiscordVerification extends Plugin {
         pluginManager.registerCommand(this, new ClearCommand());
     }
 
+    public MessageManager getMessages() {
+        return messages;
+    }
+
     public DatabaseConnector getDB() {
         return db;
     }
@@ -102,7 +113,6 @@ public class DiscordVerification extends Plugin {
         try {
             Configuration config = getConfig();
             dbPath = config.getString("database-path");
-            kickMessage = config.getString("kick-message");
             discordToken = config.getString("discord-token");
             kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify");
             guildId = BigInteger.valueOf(config.getLong("guild-id"));
@@ -134,10 +144,6 @@ public class DiscordVerification extends Plugin {
             }
         }
 
-    }
-
-    public String getKickMessage() {
-        return kickMessage;
     }
 
     public String getDbPath() {

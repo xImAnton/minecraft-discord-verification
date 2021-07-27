@@ -1,6 +1,24 @@
 database-path: db.db
-kick-message: You are not verified!
 verification-limit: -1
 discord-token:
 kick-players-on-unverify: true
 guild-id:
+messages:
+  not-verified: "You are not verified!"
+  ign:
+    no-user: ":x: Please ping the user whose IGN you want to get."
+    success: "The IGN of `$user` is `$ign`"
+    not-verified: "`$user` hasn't verified yet"
+  verify:
+    no-ign: ":x: Please specify your Ingame Name"
+    invalid-name: ":x: That minecraft account does not exist"
+    id-error: ":x: There was an error fetching your discord id!" # should be unreachable
+    verified: ":white_check_mark: You have been verified!"
+    already-existing: ":woman_shrugging: That minecraft account is already verified"
+    overridden: ":pencil: Your previous verified account has been overridden!"
+    limit-reached: ":chart_with_downwards_trend: The maximal player limit was reached! Too late"
+  whois:
+    no-ign: ":x: Please specify the IGN of the player who you want to find on Discord"
+    success: "`$ign` is $user"
+    not-verified: ":x: Couldn't find the discord account of `$ign`"
+  sql-error: ":file_folder: There was an error talking to the database"

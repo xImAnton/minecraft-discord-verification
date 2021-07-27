@@ -1,7 +1,6 @@
 package de.ximanton.discordverification.discord;
 
 import de.ximanton.discordverification.DiscordVerification;
-import de.ximanton.discordverification.InsertPlayerReturn;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
@@ -14,7 +13,8 @@ public class WhoIsCommand implements Command {
     @Override
     public void dispatch(Message msg, String[] args) {
         if (args.length < 1) {
-            msg.getChannel().block().createMessage(":x: Please specify the IGN of the player who you want to find on Discord");
+            msg.getChannel().block().createMessage(DiscordVerification.getInstance().getMessages().getWhoisNoIgn()).block();
+            return;
         }
 
         String ign = args[0].toLowerCase();
@@ -31,10 +31,10 @@ public class WhoIsCommand implements Command {
                 }
             }
 
-            String returnMsg = user != null ? "`" + ign + "` is " + user.getMention() : ":x: Couldn't find the discord account of `" + ign + "`";
+            String returnMsg = user != null ? DiscordVerification.getInstance().getMessages().formatWhoisSuccess(user, ign) : DiscordVerification.getInstance().getMessages().formatWhoisNotVerified(ign);
             msg.getChannel().block().createMessage(returnMsg).block();
         } catch (SQLException throwables) {
-            msg.getChannel().block().createMessage(InsertPlayerReturn.ERROR.getMessage()).block();
+            msg.getChannel().block().createMessage(DiscordVerification.getInstance().getMessages().getSqlError()).block();
             throwables.printStackTrace();
         }
     }
