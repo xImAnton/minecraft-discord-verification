@@ -102,7 +102,7 @@ public class DatabaseConnector {
         addUserStatement.close();
     }
 
-    private int getVerificationCount() throws SQLException {
+    public int getVerificationCount() throws SQLException {
         Statement countStatement = connection.createStatement();
         ResultSet results = countStatement.executeQuery("SELECT COUNT(*) FROM verified_users");
 

@@ -5,6 +5,7 @@ kick-players-on-unverify: true
 guild-id:
 messages:
   not-verified: "You are not verified!"
+  status: "$count/$limit players verified"
   ign:
     no-user: ":x: Please ping the user whose IGN you want to get."
     success: "The IGN of `$user` is `$ign`"

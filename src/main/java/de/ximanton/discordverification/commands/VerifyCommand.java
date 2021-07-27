@@ -28,6 +28,8 @@ public class VerifyCommand extends Command {
             return;
         }
         DiscordVerification.getInstance().getDB().insertPlayer(args[0], 0L, true);
+        DiscordVerification.getInstance().getDiscord().updateStatus();
+
         sender.sendMessage(TextComponent.fromLegacyText(args[0] + " has been verified"));
     }
 }

@@ -31,6 +31,9 @@ public class VerifyCommand implements Command {
 
         // Try to insert player
         InsertPlayerReturn status = DiscordVerification.getInstance().getDB().insertPlayer(playerName, msg.getAuthor().get().getId().asLong(), false);
+        if (status == InsertPlayerReturn.OK) {
+            DiscordVerification.getInstance().getDiscord().updateStatus();
+        }
 
         String returnMsg;
         switch (status) {

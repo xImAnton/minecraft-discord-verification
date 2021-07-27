@@ -24,6 +24,7 @@ public class UnverifyCommand extends Command {
         }
         if (DiscordVerification.getInstance().getDB().unverify(args[0])) {
             sender.sendMessage(TextComponent.fromLegacyText(args[0] + " has been unverified"));
+            DiscordVerification.getInstance().getDiscord().updateStatus();
         } else {
             sender.sendMessage(TextComponent.fromLegacyText("couldn't unverify " + args[0]));
         }

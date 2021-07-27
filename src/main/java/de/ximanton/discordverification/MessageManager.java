@@ -20,6 +20,7 @@ public class MessageManager {
     private final String whoisNoIgn;
     private final String whoisSuccess;
     private final String whoisNotVerified;
+    private final String status;
 
     public MessageManager(Configuration config) {
         ignNoUser = config.getString("ign.no-user", ":x: Please ping the user whose IGN you want to get.");
@@ -37,6 +38,11 @@ public class MessageManager {
         whoisNoIgn = config.getString("whois.no-ign", ":x: Please specify the IGN of the player who you want to find on Discord");
         whoisSuccess = config.getString("whois.success", "`$ign` is $user");
         whoisNotVerified = config.getString("whois.not-verified", ":x: Couldn't find the discord account of `$ign`");
+        status = config.getString("status", "$count/$limit players verified");
+    }
+
+    public String formatStatus(int limit, int count) {
+        return status.replace("$count", String.valueOf(count)).replace("$limit", String.valueOf(limit));
     }
 
     public String formatWhoisNotVerified(String ign) {

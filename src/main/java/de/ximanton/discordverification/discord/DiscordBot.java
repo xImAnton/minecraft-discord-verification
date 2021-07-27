@@ -10,6 +10,7 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.presence.Activity;
 import discord4j.core.object.presence.Presence;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,6 +80,7 @@ public class DiscordBot extends Thread {
     public void onMemberLeave(MemberLeaveEvent e) {
         if (!e.getGuild().block().getId().asBigInteger().equals(DiscordVerification.getInstance().getGuildId())) return;
         DiscordVerification.getInstance().getDB().removeAccountOfUser(e.getUser().getId().asLong());
+        updateStatus();
     }
 
     /**
@@ -97,7 +99,20 @@ public class DiscordBot extends Thread {
 
     private void onReady(ReadyEvent readyEvent) {
         DiscordVerification.getInstance().getProxy().getLogger().info("Discord is ready!");
-        gateway.updatePresence(Presence.online(Activity.listening("!verify"))).block();
+        updateStatus();
+    }
+
+    public void updateStatus() {
+        int limit = DiscordVerification.getInstance().getVerificationLimit();
+        int count = 0;
+
+        try {
+            count = DiscordVerification.getInstance().getDB().getVerificationCount();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        gateway.updatePresence(Presence.online(Activity.playing(DiscordVerification.getInstance().getMessages().formatStatus(limit, count)))).block();
     }
 
     /**
