@@ -1,6 +1,7 @@
-package de.ximanton.discordverification.discord;
+package de.ximanton.discordverification.discord.command;
 
 import de.ximanton.discordverification.DiscordVerification;
+import de.ximanton.discordverification.discord.Command;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 

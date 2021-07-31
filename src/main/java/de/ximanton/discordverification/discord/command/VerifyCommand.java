@@ -1,8 +1,9 @@
-package de.ximanton.discordverification.discord;
+package de.ximanton.discordverification.discord.command;
 
 import de.ximanton.discordverification.DiscordVerification;
 import de.ximanton.discordverification.InsertPlayerReturn;
 import de.ximanton.discordverification.MojangAPI;
+import de.ximanton.discordverification.discord.Command;
 import discord4j.core.object.entity.Message;
 
 public class VerifyCommand implements Command {

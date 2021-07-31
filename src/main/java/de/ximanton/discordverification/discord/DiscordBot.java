@@ -1,6 +1,9 @@
 package de.ximanton.discordverification.discord;
 
 import de.ximanton.discordverification.DiscordVerification;
+import de.ximanton.discordverification.discord.command.IGNCommand;
+import de.ximanton.discordverification.discord.command.VerifyCommand;
+import de.ximanton.discordverification.discord.command.WhoIsCommand;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.guild.MemberLeaveEvent;

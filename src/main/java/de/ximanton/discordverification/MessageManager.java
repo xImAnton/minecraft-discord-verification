@@ -6,9 +6,9 @@ import net.md_5.bungee.config.Configuration;
 public class MessageManager {
 
     private final String ignNoUser;
-    private final String kickMessage;
-    private final String ignSuccess;
     private final String ignNotVerified;
+    private final String ignSuccess;
+
     private final String verifyNoIgn;
     private final String verifyInvalidName;
     private final String verifyError;
@@ -16,10 +16,13 @@ public class MessageManager {
     private final String verifyAlreadyExists;
     private final String verifyOverridden;
     private final String verifyLimitReached;
-    private final String sqlError;
+
     private final String whoisNoIgn;
     private final String whoisSuccess;
     private final String whoisNotVerified;
+
+    private final String kickMessage;
+    private final String sqlError;
     private final String status;
 
     public MessageManager(Configuration config) {

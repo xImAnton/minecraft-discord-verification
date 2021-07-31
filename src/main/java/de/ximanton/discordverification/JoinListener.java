@@ -22,4 +22,5 @@ public class JoinListener implements Listener {
             e.completeIntent(DiscordVerification.getInstance());
         });
     }
+
 }
