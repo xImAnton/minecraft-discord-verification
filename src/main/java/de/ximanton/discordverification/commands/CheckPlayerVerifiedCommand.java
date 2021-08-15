@@ -22,6 +22,7 @@ public class CheckPlayerVerifiedCommand extends Command {
             sender.sendMessage(TextComponent.fromLegacyText("please specify the player"));
             return;
         }
+
         if (DiscordVerification.getInstance().getDB().isPlayerVerified(args[0])) {
             sender.sendMessage(TextComponent.fromLegacyText(args[0] + " is verified"));
         } else {
