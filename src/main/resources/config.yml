@@ -1,25 +1,92 @@
+# [REQUIRED] Path to the SQLite3 database file
+# - The file will be created, if not existing.
 database-path: db.db
+
+# Maximal verified players count
+# - Set this to -1 to disable the limit!
+# - Default: -1
 verification-limit: -1
+
+# The discord bot token
+# - Create a discord application (https://discord.com/developers/applications), add a bot,
+#   invite it to your discord server and insert the token here!
+# - The discord bot will not start up, if this is not supplied. (useful for external database modifications
+#   or when multiple servers run the plugin)
 discord-token:
+
+# Whether to kick players, when they get unverified
 kick-players-on-unverify: true
+
+# [REQUIRED, when discord-token is supplied] The ID if your discord server (guild)
 guild-id:
+
+# Messages to send on specific events
 messages:
+  # Displayed as kick message, if the player isn't verified
+  # - you could provide an invitation to your discord here
   not-verified: "You are not verified!"
+
+  # Displayed in the bots status
+  # - $count => The amount of verified players
+  #             Example: 13
+  # - $limit => The player limit, omit this variable if disabled
+  #             Example: 20
   status: "$count/$limit players verified"
+
+  # !ign command responses
   ign:
+    # Sent when no user was pinged in the command
     no-user: ":x: Please ping the user whose IGN you want to get."
+
+    # Sent as a success response for the ign command
+    # - $user => Pings the user whose IGN was requested
+    #            Example: @ABC
+    # - $ign  => The minecraft name of the pinged user
+    #            Example: ABC
     success: "The IGN of `$user` is `$ign`"
+
+    # Sent when the pinged user hasn't verified with its minecraft account
     not-verified: "`$user` hasn't verified yet"
+
+  # !verify command responses
   verify:
+    # Sent when no ign was provided
     no-ign: ":x: Please specify your Ingame Name"
+
+    # Sent when the provided minecraft account doesn't exist
     invalid-name: ":x: That minecraft account does not exist"
-    id-error: ":x: There was an error fetching your discord id!" # should be unreachable
+
+    # Sent when the user was verified successfully
     verified: ":white_check_mark: You have been verified!"
+
+    # Sent when the user was already verified
     already-existing: ":woman_shrugging: That minecraft account is already verified"
+
+    # Sent when the user had another minecraft account verified with its discord account
+    # and the old IGN has been overridden
     overridden: ":pencil: Your previous verified account has been overridden!"
+
+    # Sent when the verification limit is reached
     limit-reached: ":chart_with_downwards_trend: The maximal player limit was reached! Too late"
+  # !whois command responses
   whois:
+    # Sent when no IGN was provided
     no-ign: ":x: Please specify the IGN of the player who you want to find on Discord"
+
+    # Pings the discord user that verified the provided IGN
+    # - $ign  => The IGN whose discord account was requested
+    #           Example: ABC
+    # - $user => Discord ping of the user that verified the IGN
+    #            Example: @ABC
     success: "`$ign` is $user"
+
+    # Sent when the discord account of the provided IGN couldn't be found
+    # - This can happy when the account just isn't verified or when it was verified manually
+    #   using the /verify minecraft command
+    # $ign => The provided IGN
+    #         Example: ABC
     not-verified: ":x: Couldn't find the discord account of `$ign`"
+
+  # Sent when a database error occurred
+  # - shouldn't happen usually :^)
   sql-error: ":file_folder: There was an error talking to the database"
