@@ -4,14 +4,14 @@ import de.ximanton.discordverification.DiscordVerification;
 import de.ximanton.discordverification.InsertPlayerReturn;
 import de.ximanton.discordverification.MojangAPI;
 import de.ximanton.discordverification.discord.Command;
-import discord4j.core.object.entity.Message;
+import net.dv8tion.jda.api.entities.Message;
 
 public class VerifyCommand implements Command {
 
     @Override
     public void dispatch(Message msg, String[] args) {
         if (args.length < 1) {
-            msg.getChannel().block().createMessage(DiscordVerification.getInstance().getMessages().getVerifyNoIgn()).block();
+            msg.getChannel().sendMessage(DiscordVerification.getInstance().getMessages().getVerifyNoIgn()).queue();
             return;
         }
 
@@ -21,17 +21,12 @@ public class VerifyCommand implements Command {
         String uuid = MojangAPI.getPlayerUUID(playerName);
 
         if (uuid == null) {
-            msg.getChannel().block().createMessage(DiscordVerification.getInstance().getMessages().getVerifyInvalidName()).block();
-            return;
-        }
-
-        if (!msg.getAuthor().isPresent()) {
-            msg.getChannel().block().createMessage(DiscordVerification.getInstance().getMessages().getVerifyError()).block();
+            msg.getChannel().sendMessage(DiscordVerification.getInstance().getMessages().getVerifyInvalidName()).queue();
             return;
         }
 
         // Try to insert player
-        InsertPlayerReturn status = DiscordVerification.getInstance().getDB().insertPlayer(playerName, msg.getAuthor().get().getId().asLong(), false);
+        InsertPlayerReturn status = DiscordVerification.getInstance().getDB().insertPlayer(playerName, msg.getAuthor().getIdLong(), false);
         if (status == InsertPlayerReturn.OK) {
             DiscordVerification.getInstance().getDiscord().updateStatus();
         }
@@ -46,7 +41,7 @@ public class VerifyCommand implements Command {
             default -> returnMsg = "unreachable";
         }
 
-        msg.getChannel().block().createMessage(returnMsg).block();
+        msg.getChannel().sendMessage(returnMsg).queue();
     }
 
     @Override

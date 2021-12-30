@@ -1,4 +1,4 @@
 name: DiscordVerification
 version: ${project.version}
-main: de.ximanton.discordverification.DiscordVerification
+main: de.ximanton.discordverification.bungee.BungeeDiscordVerification
 author: xImAnton_

@@ -1,6 +1,6 @@
 package de.ximanton.discordverification.discord;
 
-import discord4j.core.object.entity.Message;
+import net.dv8tion.jda.api.entities.Message;
 
 public interface Command {
 

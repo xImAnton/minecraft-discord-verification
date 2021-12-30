@@ -2,8 +2,8 @@ package de.ximanton.discordverification.discord.command;
 
 import de.ximanton.discordverification.DiscordVerification;
 import de.ximanton.discordverification.discord.Command;
-import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.User;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -12,25 +12,21 @@ public class IGNCommand implements Command {
 
     @Override
     public void dispatch(Message msg, String[] args) {
-        User user = args.length < 1 ? msg.getAuthor().orElse(null) : msg.getUserMentions().blockFirst();
+        User user = args.length < 1 ? msg.getAuthor() : msg.getMentionedUsers().stream().findFirst().orElse(null);
 
         if (user == null) {
-            msg.getChannel().block().createMessage(DiscordVerification.getInstance().getMessages().getIgnNoUser()).block();
+            msg.getChannel().sendMessage(DiscordVerification.getInstance().getMessages().getIgnNoUser()).queue();
             return;
         }
 
         try {
-
-            Optional<String> ign = DiscordVerification.getInstance().getDB().getUserIGN(user.getId().asLong());
+            Optional<String> ign = DiscordVerification.getInstance().getDB().getUserIGN(user.getIdLong());
 
             String returnMsg = ign.map(s -> DiscordVerification.getInstance().getMessages().formatIgnSuccess(user, s)).orElseGet(() -> DiscordVerification.getInstance().getMessages().formatIgnNotVerified(user));
-            msg.getChannel().block().createMessage(returnMsg).block();
-
+            msg.getChannel().sendMessage(returnMsg).queue();
         } catch (SQLException throwables) {
-
-            msg.getChannel().block().createMessage(DiscordVerification.getInstance().getMessages().getSqlError()).block();
+            msg.getChannel().sendMessage(DiscordVerification.getInstance().getMessages().getSqlError()).queue();
             throwables.printStackTrace();
-
         }
 
     }
@@ -39,4 +35,5 @@ public class IGNCommand implements Command {
     public String getName() {
         return "ign";
     }
+
 }

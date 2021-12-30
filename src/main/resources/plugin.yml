@@ -1,0 +1,17 @@
+name: DiscordVerification
+version: ${project.version}
+main: de.ximanton.discordverification.bukkit.BukkitDiscordVerification
+api-version: 1.17
+prefix: DiscordVerification
+authors: [xImAnton_]
+commands:
+  isverified:
+    description: Checks whether a player is verified
+  clearverifications:
+    description: Clears all verifications in the database, requires confirmation
+  verifiedplayers:
+    description: Lists all verified players
+  unverify:
+    description: Unverifies a specific player
+  verify:
+    description: Verifies a player (The players discord account isn't linked and thus the player isn't unverified when leaving the discord server)

@@ -30,7 +30,7 @@ public class DatabaseConnector {
      * @return true if the player is verified, false if not or there was an error
      */
     public boolean isPlayerVerified(String playerName) {
-        DiscordVerification.getInstance().getProxy().getLogger().info("Checking player " + playerName);
+        DiscordVerification.getInstance().getPlugin().getLogger().info("Checking player " + playerName);
         try {
             if (connection == null) {
                 return false;
@@ -47,11 +47,11 @@ public class DatabaseConnector {
         if (connection == null) {
             throw new RuntimeException("database connection couldn't be established");
         }
-        DiscordVerification.getInstance().getProxy().getLogger().info("database connection established");
+        DiscordVerification.getInstance().getPlugin().getLogger().info("database connection established");
     }
 
     private Connection openConnection() {
-        DiscordVerification.getInstance().getProxy().getLogger().info("establishing database connection");
+        DiscordVerification.getInstance().getPlugin().getLogger().info("establishing database connection");
         try {
             // Initialise the SQLite driver
             Class.forName("org.sqlite.JDBC");
@@ -65,7 +65,7 @@ public class DatabaseConnector {
     public void close() {
         try {
             connection.close();
-            DiscordVerification.getInstance().getProxy().getLogger().info("database connection closed");
+            DiscordVerification.getInstance().getPlugin().getLogger().info("database connection closed");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -145,7 +145,7 @@ public class DatabaseConnector {
             Optional<String> isUserVerified = getUserIGN(authorId);
             if (isUserVerified.isPresent()) {
                 if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
-                    DiscordVerification.getInstance().kickPlayer(isUserVerified.get(), "Another Player has been verified with your discord account!");
+                    DiscordVerification.getInstance().getPlugin().kickPlayer(isUserVerified.get(), "Another Player has been verified with your discord account!");
                 }
                 // Override previous verified ign
                 updatePlayerIGN(playerName, authorId);
@@ -192,7 +192,7 @@ public class DatabaseConnector {
             if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
                 Optional<String> userIGN = getUserIGN(userId);
                 if (userIGN.isPresent()) {
-                    DiscordVerification.getInstance().kickPlayer(userIGN.get(), "You left the Discord Server!");
+                    DiscordVerification.getInstance().getPlugin().kickPlayer(userIGN.get(), "You left the Discord Server!");
                 } else {
                     return;
                 }
@@ -239,7 +239,7 @@ public class DatabaseConnector {
             }
 
             if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
-                DiscordVerification.getInstance().kickPlayer(player);
+                DiscordVerification.getInstance().getPlugin().kickPlayer(player, "you have been unverified"); // TODO: add message to config
             }
 
             deleteUser(player);

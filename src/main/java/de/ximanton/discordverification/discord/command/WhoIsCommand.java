@@ -2,10 +2,8 @@ package de.ximanton.discordverification.discord.command;
 
 import de.ximanton.discordverification.DiscordVerification;
 import de.ximanton.discordverification.discord.Command;
-import discord4j.common.util.Snowflake;
-import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.User;
-import discord4j.discordjson.json.UserData;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 
 import java.sql.SQLException;
 
@@ -14,7 +12,7 @@ public class WhoIsCommand implements Command {
     @Override
     public void dispatch(Message msg, String[] args) {
         if (args.length < 1) {
-            msg.getChannel().block().createMessage(DiscordVerification.getInstance().getMessages().getWhoisNoIgn()).block();
+            msg.getChannel().sendMessage(DiscordVerification.getInstance().getMessages().getWhoisNoIgn()).queue();
             return;
         }
 
@@ -25,17 +23,13 @@ public class WhoIsCommand implements Command {
             User user = null;
 
             if (userId != 0) {
-                UserData data = DiscordVerification.getInstance().getDiscord().getClient().getUserById(Snowflake.of(userId)).getData().block();
-
-                if (data != null) {
-                    user = new User(DiscordVerification.getInstance().getDiscord().getGateway(), data);
-                }
+                user = DiscordVerification.getInstance().getDiscord().getClient().getUserById(userId);
             }
 
             String returnMsg = user != null ? DiscordVerification.getInstance().getMessages().formatWhoisSuccess(user, ign) : DiscordVerification.getInstance().getMessages().formatWhoisNotVerified(ign);
-            msg.getChannel().block().createMessage(returnMsg).block();
+            msg.getChannel().sendMessage(returnMsg).queue();
         } catch (SQLException throwables) {
-            msg.getChannel().block().createMessage(DiscordVerification.getInstance().getMessages().getSqlError()).block();
+            msg.getChannel().sendMessage(DiscordVerification.getInstance().getMessages().getSqlError()).queue();
             throwables.printStackTrace();
         }
     }

@@ -1,68 +1,66 @@
 package de.ximanton.discordverification;
 
-import de.ximanton.discordverification.commands.*;
 import de.ximanton.discordverification.discord.DiscordBot;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.nio.file.Files;
+import java.util.Objects;
 
-/**
- * The Main plugin class
- */
-public class DiscordVerification extends Plugin {
+public class DiscordVerification {
 
-    public static DiscordVerification INSTANCE;
-
-    private DatabaseConnector db;
-    private String dbPath;
-    private String discordToken;
-    private DiscordBot discord;
-    private boolean kickPlayersOnUnverify;
-    private BigInteger guildId;
-    private int verificationLimit;
-    private MessageManager messages;
-
-    public DiscordVerification() {
-        INSTANCE = this;
-    }
+    private static DiscordVerification INSTANCE = null;
 
     public static DiscordVerification getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new DiscordVerification();
+        }
         return INSTANCE;
     }
 
-    /**
-     * Called by bungee on plugin enable
-     * Setups the plugin, the database connection and discord and reads the config file
-     */
-    @Override
-    public void onEnable() {
-        ensureConfigExisting();
-        reloadConfig();
+    private String dbPath;
+    private String discordToken;
+    private boolean kickPlayersOnUnverify;
+    private long guildId;
+    private int verificationLimit;
+    private MessageManager messages;
+    private DatabaseConnector db;
+    private DiscordBot discord;
+    private IDiscordVerification plugin;
 
-        try {
-            messages = new MessageManager(getConfig().getSection("messages"));
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void setupBungee(IDiscordVerification plugin, Configuration config) {
+        this.plugin = plugin;
+
+        dbPath = config.getString("database-path");
+        discordToken = config.getString("discord-token");
+        kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify", true);
+        guildId = config.getLong("guild-id");
+        verificationLimit = config.getInt("verification-limit", -1);
+
+        messages = new MessageManager(config.getSection("messages"));
+        setupCommons();
+    }
+
+    public void setupBukkit(IDiscordVerification plugin, FileConfiguration config) {
+        this.plugin = plugin;
+
+        dbPath = config.getString("database-path");
+        discordToken = config.getString("discord-token");
+        kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify", true);
+        guildId = config.getLong("guild-id");
+        verificationLimit = config.getInt("verification-limit", -1);
+
+        messages = new MessageManager(Objects.requireNonNull(config.getConfigurationSection("messages")));
+        setupCommons();
+    }
+
+    private void setupCommons() {
+        if (discordToken != null && !discordToken.isEmpty()) {
+            discord = new DiscordBot(discordToken);
+            discord.start();
         }
 
-        getProxy().getPluginManager().registerListener(this, new JoinListener());
-        registerCommands();
-        if (discordToken != null) {
-            if (!discordToken.isEmpty()) {
-                discord = new DiscordBot(discordToken);
-                discord.start();
-            }
-        }
         boolean createdDB = false;
         File f = new File(dbPath);
         if (!f.exists()) {
@@ -77,20 +75,13 @@ public class DiscordVerification extends Plugin {
         if (createdDB) db.resetDB();
     }
 
-    /**
-     * Registers all plugin commands to the proxy plugin manager
-     */
-    private void registerCommands() {
-        PluginManager pluginManager = getProxy().getPluginManager();
-        pluginManager.registerCommand(this, new ListVerifiedPlayersCommand());
-        pluginManager.registerCommand(this, new CheckPlayerVerifiedCommand());
-        pluginManager.registerCommand(this, new UnverifyCommand());
-        pluginManager.registerCommand(this, new VerifyCommand());
-        pluginManager.registerCommand(this, new ClearCommand());
+    public void disable() {
+        db.close();
+        discord.interrupt();
     }
 
-    public MessageManager getMessages() {
-        return messages;
+    public IDiscordVerification getPlugin() {
+        return plugin;
     }
 
     public DatabaseConnector getDB() {
@@ -101,93 +92,26 @@ public class DiscordVerification extends Plugin {
         return discord;
     }
 
-    public boolean isKickPlayersOnUnverify() {
-        return kickPlayersOnUnverify;
+    public MessageManager getMessages() {
+        return messages;
     }
 
-
-    /**
-     * Reads values from the config file and sets the corresponding variables
-     */
-    private void reloadConfig() {
-        try {
-            Configuration config = getConfig();
-            dbPath = config.getString("database-path");
-            discordToken = config.getString("discord-token");
-            kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify");
-            guildId = BigInteger.valueOf(config.getLong("guild-id"));
-            verificationLimit = config.getInt("verification-limit");
-        } catch (IOException exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    public BigInteger getGuildId() {
+    public long getGuildId() {
         return guildId;
-    }
-
-
-    /**
-     * Checks if a config file is existing and creates one if not
-     */
-    private void ensureConfigExisting() {
-        if (!getDataFolder().exists())
-            getDataFolder().mkdir();
-
-        File file = new File(getDataFolder(), "config.yml");
-
-        if (!file.exists()) {
-            try (InputStream in = getResourceAsStream("config.yml")) {
-                Files.copy(in, file.toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-
-    public String getDbPath() {
-        return dbPath;
-    }
-
-    private Configuration getConfig() throws IOException {
-        return ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
-    }
-
-
-    /**
-     * Called by bungee on plugin disable
-     * Closes database and discord connections
-     */
-    @Override
-    public void onDisable() {
-        db.close();
-        discord.interrupt();
-    }
-
-
-    /**
-     * Shorthand for kicking players by username from the server
-     * @param ign the player ign
-     * @param reason the kick message that is shown up on the client
-     */
-    public void kickPlayer(String ign, String reason) {
-        for (ProxiedPlayer player : getProxy().getPlayers()) {
-            if (player.getName().equalsIgnoreCase(ign)) {
-                player.disconnect(TextComponent.fromLegacyText(reason));
-            }
-        }
     }
 
     public int getVerificationLimit() {
         return verificationLimit;
     }
 
-    /**
-     * Kicks player with default kick message
-     * @param ign the player ign
-     */
-    public void kickPlayer(String ign) {
-        kickPlayer(ign, "You have been unverified!");
+    public String getDbPath() {
+        return dbPath;
     }
+
+    public boolean isKickPlayersOnUnverify() {
+        return kickPlayersOnUnverify;
+    }
+
+
+
 }
