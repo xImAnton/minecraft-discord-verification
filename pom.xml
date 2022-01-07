@@ -6,7 +6,7 @@
 
     <groupId>de.ximanton</groupId>
     <artifactId>discord-verification</artifactId>
-    <version>1.2-RELEASE</version>
+    <version>1.2.1-RELEASE</version>
     <packaging>jar</packaging>
 
     <name>Discord Verification</name>

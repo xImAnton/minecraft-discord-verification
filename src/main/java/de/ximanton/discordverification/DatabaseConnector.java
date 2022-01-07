@@ -32,9 +32,6 @@ public class DatabaseConnector {
     public boolean isPlayerVerified(String playerName) {
         DiscordVerification.getInstance().getPlugin().getLogger().info("Checking player " + playerName);
         try {
-            if (connection == null) {
-                return false;
-            }
             return playerExisting(playerName);
         } catch (SQLException e) {
             e.printStackTrace();
