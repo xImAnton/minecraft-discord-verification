@@ -14,10 +14,10 @@ public class JoinListener implements Listener {
         BungeeDiscordVerification.getInstance().getProxy().getScheduler().runAsync(BungeeDiscordVerification.getInstance(), () -> {
             String playerName = e.getConnection().getName();
 
-            // Check if player is verified, if not disconnect him
+            // Check if player is verified, if not disconnect them
             if (!DiscordVerification.getInstance().getDB().isPlayerVerified(playerName)) {
                 e.setCancelled(true);
-                e.setCancelReason(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().formatKickMessage(playerName)));
+                e.setCancelReason(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().formatKickNotVerified(playerName)));
                 DiscordVerification.getInstance().getPlugin().getLogger().warning("Unverified Player " + playerName + " tried to connect to the Server");
             }
             e.completeIntent(BungeeDiscordVerification.getInstance());

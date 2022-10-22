@@ -22,13 +22,35 @@ public class MessageManager {
     private final String whoisSuccess;
     private final String whoisNotVerified;
 
-    private final String kickMessage;
     private final String sqlError;
     private final String status;
 
+    private final String pluginPrefix;
+    private final String noPermission;
+
+    private final String playerNotSpecified;
+    private final String isVerifiedResult;
+
+    private final String clearSuccess;
+    private final String clearConfirm;
+
+    private final String listVerifiedFetching;
+    private final String listVerifiedEmpty;
+
+    private final String unverifySuccess;
+    private final String unverifyError;
+
+    private final String verifySuccess;
+    private final String verifyInvalidPlayer;
+
+    private final String kickUnverify;
+    private final String kickNotVerified;
+    private final String kickLeftDiscord;
+    private final String kickOverridden;
+
     public MessageManager(Configuration config) {
         ignNoUser = config.getString("ign.no-user", ":x: Please ping the user whose IGN you want to get.");
-        kickMessage = config.getString("not-verified", "You are not verified!");
+        kickNotVerified = config.getString("kick.not-verified", "You are not verified!");
         ignSuccess = config.getString("ign.success", "The IGN of `$user` is `$ign`");
         ignNotVerified = config.getString("ign.not-verified", "`$user` hasn't verified yet");
         verifyNoIgn = config.getString("verify.no-ign", ":x: Please specify your Ingame Name");
@@ -43,11 +65,26 @@ public class MessageManager {
         whoisSuccess = config.getString("whois.success", "`$ign` is $user");
         whoisNotVerified = config.getString("whois.not-verified", ":x: Couldn't find the discord account of `$ign`");
         status = config.getString("status", "$count/$limit players verified");
+        pluginPrefix = config.getString("ingame.plugin-prefix", "§7[§bDiscordVerification§7]§8: §r");
+        noPermission = config.getString("ingame.no-permission", "§cYou don't have the permission to to this");
+        playerNotSpecified = config.getString("ingame.player-not-specified", "Please specify the player!");
+        isVerifiedResult = config.getString("ingame.is-verified.result", "$player is §9$result");
+        clearSuccess = config.getString("ingame.clear.success", "§aThe verification list has been cleared");
+        clearConfirm = config.getString("ingame.clear.confirm", "§cPlease type that again if you really want to delete all verifications. THIS CANNOT BE UNDONE!");
+        listVerifiedFetching = config.getString("ingame.list-verifications.fetching", "Fetching verified players..");
+        listVerifiedEmpty = config.getString("ingame.list-verifications.empty", "There are no verified players");
+        unverifySuccess = config.getString("ingame.unverify.success", "$player has been unverified");
+        unverifyError = config.getString("ingame.unverify.error", "Couldn't unverify $player");
+        verifyInvalidPlayer = config.getString("ingame.verify.invalid-player", "This player doesn't exist");
+        verifySuccess = config.getString("ingame.verify.success", "$player has been verified");
+        kickUnverify = config.getString("kick.unverified", "You have been unverified!");
+        kickLeftDiscord = config.getString("kick.discord-leave", "You left the Discord Server!");
+        kickOverridden = config.getString("kick.overridden", "Another Player has been verified with your discord account!");
     }
 
     public MessageManager(ConfigurationSection config) {
         ignNoUser = config.getString("ign.no-user", ":x: Please ping the user whose IGN you want to get.");
-        kickMessage = config.getString("not-verified", "You are not verified!");
+        kickNotVerified = config.getString("kick.not-verified", "You are not verified!");
         ignSuccess = config.getString("ign.success", "The IGN of `$user` is `$ign`");
         ignNotVerified = config.getString("ign.not-verified", "`$user` hasn't verified yet");
         verifyNoIgn = config.getString("verify.no-ign", ":x: Please specify your Ingame Name");
@@ -62,6 +99,21 @@ public class MessageManager {
         whoisSuccess = config.getString("whois.success", "`$ign` is $user");
         whoisNotVerified = config.getString("whois.not-verified", ":x: Couldn't find the discord account of `$ign`");
         status = config.getString("status", "$count/$limit players verified");
+        pluginPrefix = config.getString("ingame.plugin-prefix", "§7[§bDiscordVerification§7]§8: §r");
+        noPermission = config.getString("ingame.no-permission", "§cYou don't have the permission to to this");
+        playerNotSpecified = config.getString("ingame.player-not-specified", "Please specify the player!");
+        isVerifiedResult = config.getString("ingame.is-verified.result", "$player is §9$result");
+        clearSuccess = config.getString("ingame.clear.success", "§aThe verification list has been cleared");
+        clearConfirm = config.getString("ingame.clear.confirm", "§cPlease type that again if you really want to delete all verifications. THIS CANNOT BE UNDONE!");
+        listVerifiedFetching = config.getString("ingame.list-verifications.fetching", "Fetching verified players..");
+        listVerifiedEmpty = config.getString("ingame.list-verifications.empty", "There are no verified players");
+        unverifySuccess = config.getString("ingame.unverify.success", "$player has been unverified");
+        unverifyError = config.getString("ingame.unverify.error", "Couldn't unverify $player");
+        verifyInvalidPlayer = config.getString("ingame.verify.invalid-player", "This player doesn't exist");
+        verifySuccess = config.getString("ingame.verify.success", "$player has been verified");
+        kickUnverify = config.getString("kick.unverified", "You have been unverified!");
+        kickLeftDiscord = config.getString("kick.discord-leave", "You left the Discord Server!");
+        kickOverridden = config.getString("kick.overridden", "Another Player has been verified with your discord account!");
     }
 
     public String formatStatus(int limit, int count) {
@@ -120,12 +172,67 @@ public class MessageManager {
         return ignSuccess.replace("$user", user.getAsTag()).replace("$ign", ign);
     }
 
-    public String formatKickMessage(String playerName) {
-        return kickMessage.replace("%name%", playerName);
+    public String formatKickNotVerified(String playerName) {
+        return kickNotVerified.replace("$player", playerName);
     }
 
     public String getIgnNoUser() {
         return ignNoUser;
     }
 
+    public String getNoPermission() {
+        return pluginPrefix + noPermission;
+    }
+
+    public String getPlayerNotSpecified() {
+        return pluginPrefix + playerNotSpecified;
+    }
+
+    public String formatIsVerifiedResult(String player, boolean isVerified) {
+        return pluginPrefix + isVerifiedResult.replace("$player", player).replace("$result", isVerified ? "verified" : "not verified");
+    }
+
+    public String getClearSuccess() {
+        return pluginPrefix + clearSuccess;
+    }
+
+    public String getClearConfirm() {
+        return pluginPrefix + clearConfirm;
+    }
+
+    public String getListVerifiedFetching() {
+        return pluginPrefix + listVerifiedFetching;
+    }
+
+    public String getListVerifiedEmpty() {
+        return pluginPrefix + listVerifiedEmpty;
+    }
+
+    public String formatUnverifySuccess(String player) {
+        return pluginPrefix + unverifySuccess.replace("$player", player);
+    }
+
+    public String formatUnverifyError(String player) {
+        return pluginPrefix + unverifyError.replace("$player", player);
+    }
+
+    public String formatVerifySuccess(String player) {
+        return pluginPrefix + verifySuccess.replace("$player", player);
+    }
+
+    public String formatVerifyInvalidPlayer(String player) {
+        return pluginPrefix + verifyInvalidPlayer.replace("$player", player);
+    }
+
+    public String getKickUnverify() {
+        return kickUnverify;
+    }
+
+    public String getKickLeftDiscord() {
+        return kickLeftDiscord;
+    }
+
+    public String formatKickOverridden(String newPlayer) {
+        return kickOverridden.replace("$newPlayer", newPlayer);
+    }
 }

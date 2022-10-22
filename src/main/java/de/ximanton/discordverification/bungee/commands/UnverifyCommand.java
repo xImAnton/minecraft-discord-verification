@@ -15,18 +15,18 @@ public class UnverifyCommand extends Command {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!sender.hasPermission("discordverification.unverify")) {
-            sender.sendMessage(TextComponent.fromLegacyText("you don't have the permission to do that!"));
+            sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().getNoPermission()));
             return;
         }
         if (args.length < 1) {
-            sender.sendMessage(TextComponent.fromLegacyText("please specify the player"));
+            sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().getPlayerNotSpecified()));
             return;
         }
         if (DiscordVerification.getInstance().getDB().unverify(args[0])) {
-            sender.sendMessage(TextComponent.fromLegacyText(args[0] + " has been unverified"));
+            sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().formatUnverifySuccess(args[0])));
             DiscordVerification.getInstance().getDiscord().updateStatus();
         } else {
-            sender.sendMessage(TextComponent.fromLegacyText("couldn't unverify " + args[0]));
+            sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().formatUnverifyError(args[0])));
         }
     }
 }

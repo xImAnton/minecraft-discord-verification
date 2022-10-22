@@ -12,22 +12,22 @@ public class VerifyCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
         if (!sender.hasPermission("discordverification.verify")) {
-            sender.sendMessage("you don't have the permission to do that!");
+            sender.sendMessage(DiscordVerification.getInstance().getMessages().getNoPermission());
             return false;
         }
         if (args.length < 1) {
-            sender.sendMessage("please specify the player");
+            sender.sendMessage(DiscordVerification.getInstance().getMessages().getPlayerNotSpecified());
             return false;
         }
         String uuid = MojangAPI.getPlayerUUID(args[0]);
         if (uuid == null) {
-            sender.sendMessage("this player doesn't exist");
+            sender.sendMessage(DiscordVerification.getInstance().getMessages().formatVerifyInvalidPlayer(args[0]));
             return false;
         }
         DiscordVerification.getInstance().getDB().insertPlayer(args[0], 0L, true);
         DiscordVerification.getInstance().getDiscord().updateStatus();
 
-        sender.sendMessage(args[0] + " has been verified");
+        sender.sendMessage(DiscordVerification.getInstance().getMessages().formatVerifySuccess(args[0]));
         return true;
     }
 
