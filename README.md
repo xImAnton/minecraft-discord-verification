@@ -8,7 +8,7 @@ To use this project, you need a bungeecord or spigot minecraft (proxy) server.
 Insert the built or downloaded jar into the plugins folder. After the first run, a config file is generated in `./plugins/DiscordVerification`.
 
 You also need a discord developer application with a bot. Invite this bot to your server and paste your token from the discord dev center into the config file.
-You also need to set your discord server (guild) id there. Make sure the bot has the server members intent activated.
+You also need to set your discord server (guild) id there. Make sure the bot has the server members and guild message intents activated.
 
 When the plugin is loaded, the discord bot will startup too and listen for `!verify` messages.
 
