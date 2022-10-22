@@ -31,9 +31,24 @@ roles-on-verify:
 
 # Messages to send on specific events
 messages:
-  # Displayed as kick message, if the player isn't verified
-  # - you could provide an invitation to your discord here
-  not-verified: "You are not verified!"
+  # Kick messages
+  kick:
+    # Displayed as kick message, if the player isn't verified
+    # - you could provide an invitation to your discord here
+    not-verified: "You are not verified!"
+
+    # Displayed as kick message when a player is unverified but on the server
+    # Note: the player is only disconnected if `kick-players-on-unverify` is `true`
+    unverified: "You have been unverified!"
+
+    # Displayed as kick message when a player leaves the discord server
+    # Note: the player is only disconnected if `kick-players-on-unverify` is `true`
+    discord-leave: "You left the Discord Server!"
+
+    # Displayed as kick message when the discord user verified another minecraft account
+    # Note: the player is only disconnected if `kick-players-on-unverify` is `true`
+    # - $newPlayer => the new verified account that overrode this one
+    overridden: "Another Player ($newPlayer) has been verified with your discord account!"
 
   # Displayed in the bots status
   # - $count => The amount of verified players
@@ -77,6 +92,7 @@ messages:
 
     # Sent when the verification limit is reached
     limit-reached: ":chart_with_downwards_trend: The maximal player limit was reached! Too late"
+
   # !whois command responses
   whois:
     # Sent when no IGN was provided
@@ -90,7 +106,7 @@ messages:
     success: "`$ign` is $user"
 
     # Sent when the discord account of the provided IGN couldn't be found
-    # - This can happy when the account just isn't verified or when it was verified manually
+    # - This can happen when the account just isn't verified or when it was verified manually
     #   using the /verify minecraft command
     # $ign => The provided IGN
     #         Example: ABC
@@ -99,3 +115,57 @@ messages:
   # Sent when a database error occurred
   # - shouldn't happen usually :^)
   sql-error: ":file_folder: There was an error talking to the database"
+
+  # messages that are visible ingame
+  ingame:
+    # Prefix for all ingame command responses of this plugin
+    plugin-prefix: "§7[§bDiscordVerification§7]§8: §r"
+
+    # Sent if the player tries to run a command without having the according permission
+    no-permission: "§cYou don't have the permission to to this"
+
+    # Sent by commands if the player argument wasn't specified
+    player-not-specified: "Please specify the player!"
+
+    # /isverified command responses
+    is-verified:
+      # Sent on successful result
+      # - $result => "verified" or "not verified"
+      # - $player => The queried player
+      result: "$player is §a$result"
+
+    # /clearverifications command responses
+    clear:
+      # Sent when all verification have been cleared
+      success: "§aThe verification list has been cleared"
+
+      # Sent as confirmation prompt message
+      confirm: "§cPlease type that again if you really want to delete all verifications. THIS CANNOT BE UNDONE!"
+
+    # /verifiedplayers command responses
+    list-verifications:
+      # Sent as loading message
+      fetching: "Fetching verified players.."
+
+      # Sent when there are no verified players
+      empty: "There are no verified players"
+
+    # /unverify command responses
+    unverify:
+      # Sent on successful unverification
+      # - $player => The player that was unverified
+      success: "$player has been unverified"
+
+      # Sent when the player couldn't be unverified (because it wasn't verified)
+      # - $player => The player that should've been unverified
+      error: "Couldn't unverify $player"
+
+    # /verify command responses
+    verify:
+      # Sent when a non-existing player is passed
+      # - $player => The player that was passed
+      invalid-player: "This player doesn't exist"
+
+      # Sent on successful verification
+      # - $player => The player that was verified
+      success: "$player has been verified"

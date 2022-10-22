@@ -13,17 +13,17 @@ public class ClearCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
         if (!sender.hasPermission("discordverification.clear")) {
-            sender.sendMessage("you don't have the permission to do that!");
+            sender.sendMessage(DiscordVerification.getInstance().getMessages().getNoPermission());
             return false;
         }
 
         if (System.currentTimeMillis() - lastUse < 10000) {
             DiscordVerification.getInstance().getDB().resetDB();
-            sender.sendMessage("the verifications list has been cleared");
+            sender.sendMessage(DiscordVerification.getInstance().getMessages().getClearSuccess());
             lastUse = 0;
         } else {
             lastUse = System.currentTimeMillis();
-            sender.sendMessage("please type that again if you really want to delete all verifications");
+            sender.sendMessage(DiscordVerification.getInstance().getMessages().getClearConfirm());
         }
 
         return true;

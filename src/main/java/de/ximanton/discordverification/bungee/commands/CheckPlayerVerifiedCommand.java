@@ -15,19 +15,15 @@ public class CheckPlayerVerifiedCommand extends Command {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!sender.hasPermission("discordverification.check")) {
-            sender.sendMessage(TextComponent.fromLegacyText("you don't have the permission to do that!"));
+            sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().getNoPermission()));
             return;
         }
 
         if (args.length < 1) {
-            sender.sendMessage(TextComponent.fromLegacyText("please specify the player"));
+            sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().getPlayerNotSpecified()));
             return;
         }
 
-        if (DiscordVerification.getInstance().getDB().isPlayerVerified(args[0])) {
-            sender.sendMessage(TextComponent.fromLegacyText(args[0] + " is verified"));
-        } else {
-            sender.sendMessage(TextComponent.fromLegacyText(args[0] + " is not verified"));
-        }
+        sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().formatIsVerifiedResult(args[0], DiscordVerification.getInstance().getDB().isPlayerVerified(args[0]))));
     }
 }

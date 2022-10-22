@@ -16,16 +16,16 @@ public class ClearCommand extends Command {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!sender.hasPermission("discordverification.clear")) {
-            sender.sendMessage(TextComponent.fromLegacyText("you don't have the permission to do that!"));
+            sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().getNoPermission()));
             return;
         }
         if (System.currentTimeMillis() - lastUse < 10000) {
             DiscordVerification.getInstance().getDB().resetDB();
-            sender.sendMessage(TextComponent.fromLegacyText("the verifications list has been cleared"));
+            sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().getClearSuccess()));
             lastUse = 0;
         } else {
             lastUse = System.currentTimeMillis();
-            sender.sendMessage(TextComponent.fromLegacyText("please type that again if you really want to delete all verifications"));
+            sender.sendMessage(TextComponent.fromLegacyText(DiscordVerification.getInstance().getMessages().getClearConfirm()));
         }
     }
 }

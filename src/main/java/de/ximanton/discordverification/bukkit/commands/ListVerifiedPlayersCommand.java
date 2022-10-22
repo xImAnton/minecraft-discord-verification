@@ -13,14 +13,14 @@ public class ListVerifiedPlayersCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
         if (!sender.hasPermission("discordverification.list")) {
-            sender.sendMessage("you don't have the permission to do that!");
+            sender.sendMessage(DiscordVerification.getInstance().getMessages().getNoPermission());
             return false;
         }
-        sender.sendMessage("Fetching verified players.. ");
+        sender.sendMessage(DiscordVerification.getInstance().getMessages().getListVerifiedFetching());
         Set<String> players = DiscordVerification.getInstance().getDB().getAllVerifiedPlayers();
 
         if (players.isEmpty()) {
-            sender.sendMessage("there are no verified players");
+            sender.sendMessage(DiscordVerification.getInstance().getMessages().getListVerifiedEmpty());
             return false;
         }
 

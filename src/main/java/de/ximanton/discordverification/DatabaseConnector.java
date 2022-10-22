@@ -140,15 +140,18 @@ public class DatabaseConnector {
                 return InsertPlayerReturn.ALREADY_EXISTS;
             }
 
-            // Check if the discord user already had a verified account
-            Optional<String> isUserVerified = getUserIGN(authorId);
-            if (isUserVerified.isPresent()) {
-                if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
-                    DiscordVerification.getInstance().getPlugin().kickPlayer(isUserVerified.get(), "Another Player has been verified with your discord account!");
+            // check only for already verified players, if a discord user executes the verify command
+            if (authorId != 0) {
+                // Check if the discord user already had a verified account
+                Optional<String> isUserVerified = getUserIGN(authorId);
+                if (isUserVerified.isPresent()) {
+                    if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
+                        DiscordVerification.getInstance().getPlugin().kickPlayer(isUserVerified.get(), DiscordVerification.getInstance().getMessages().formatKickOverridden(playerName));
+                    }
+                    // Override previous verified ign
+                    updatePlayerIGN(playerName, authorId);
+                    return InsertPlayerReturn.OVERRIDDEN;
                 }
-                // Override previous verified ign
-                updatePlayerIGN(playerName, authorId);
-                return InsertPlayerReturn.OVERRIDDEN;
             }
 
             if ((DiscordVerification.getInstance().getVerificationLimit() > 0 && DiscordVerification.getInstance().getVerificationLimit() <= getVerificationCount()) && !ignoreLimit) {
@@ -194,7 +197,7 @@ public class DatabaseConnector {
             if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
                 Optional<String> userIGN = getUserIGN(userId);
                 if (userIGN.isPresent()) {
-                    DiscordVerification.getInstance().getPlugin().kickPlayer(userIGN.get(), "You left the Discord Server!");
+                    DiscordVerification.getInstance().getPlugin().kickPlayer(userIGN.get(), DiscordVerification.getInstance().getMessages().getKickLeftDiscord());
                 } else {
                     // no ign for discord user that left was found, ignoring
                     return;
@@ -247,7 +250,7 @@ public class DatabaseConnector {
             }
 
             if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
-                DiscordVerification.getInstance().getPlugin().kickPlayer(player, "you have been unverified"); // TODO: add message to config
+                DiscordVerification.getInstance().getPlugin().kickPlayer(player, DiscordVerification.getInstance().getMessages().getKickUnverify());
             }
 
             DiscordVerification.getInstance().getDiscord().performRoleUpdate(player, false);
