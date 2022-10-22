@@ -26,6 +26,7 @@ public class DatabaseConnector {
 
     /**
      * Checks if a player is verified
+     *
      * @param playerName The player ign to check
      * @return true if the player is verified, false if not or there was an error
      */
@@ -126,8 +127,9 @@ public class DatabaseConnector {
 
     /**
      * Creates a new verification
+     *
      * @param playerName The player ign to verify
-     * @param authorId The discord user id to assign
+     * @param authorId   The discord user id to assign
      * @return The status of the insertion
      */
     public InsertPlayerReturn insertPlayer(String playerName, long authorId, boolean ignoreLimit) {
@@ -138,7 +140,7 @@ public class DatabaseConnector {
                 return InsertPlayerReturn.ALREADY_EXISTS;
             }
 
-            // Check if the discord user already had an verified account
+            // Check if the discord user already had a verified account
             Optional<String> isUserVerified = getUserIGN(authorId);
             if (isUserVerified.isPresent()) {
                 if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
@@ -152,6 +154,8 @@ public class DatabaseConnector {
             if ((DiscordVerification.getInstance().getVerificationLimit() > 0 && DiscordVerification.getInstance().getVerificationLimit() <= getVerificationCount()) && !ignoreLimit) {
                 return InsertPlayerReturn.LIMIT_REACHED;
             }
+
+            DiscordVerification.getInstance().getDiscord().performRoleUpdate(authorId, true);
 
             // If neither the ign already existed nor the discord user had an verified account, insert the ign
             addUser(playerName, authorId);
@@ -173,27 +177,32 @@ public class DatabaseConnector {
 
     public void deleteUser(String ign) throws SQLException {
         PreparedStatement deletePlayer = connection.prepareStatement("DELETE FROM verified_users WHERE ign = ?;");
-        deletePlayer.setString(1, ign.toLowerCase());
 
+        deletePlayer.setString(1, ign.toLowerCase());
         deletePlayer.executeUpdate();
         deletePlayer.close();
     }
 
     /**
      * Unverifies a minecraft account by discord user id
+     *
      * @param userId The discord user id
      */
     public void removeAccountOfUser(long userId) {
         try {
-            // Check the ign of the user to remove to kick him on unverify
+            // Check the ign of the user to remove to kick them on unverify
             if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
                 Optional<String> userIGN = getUserIGN(userId);
                 if (userIGN.isPresent()) {
                     DiscordVerification.getInstance().getPlugin().kickPlayer(userIGN.get(), "You left the Discord Server!");
                 } else {
+                    // no ign for discord user that left was found, ignoring
                     return;
                 }
             }
+
+            // we don't have to add/remove roles when the user left
+            // DiscordVerification.getInstance().getDiscord().performRoleUpdate(userId, false);
 
             // Delete the users record
             deleteUser(userId);
@@ -205,6 +214,7 @@ public class DatabaseConnector {
 
     /**
      * Fetches all verified players
+     *
      * @return A set of player igns as Strings
      */
     public Set<String> getAllVerifiedPlayers() {
@@ -226,6 +236,7 @@ public class DatabaseConnector {
 
     /**
      * Unverifies a player by ign
+     *
      * @param player the players ign
      * @return true if the player was unverified successful, false when an error occurred or the player wasn't verified
      */
@@ -238,6 +249,8 @@ public class DatabaseConnector {
             if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
                 DiscordVerification.getInstance().getPlugin().kickPlayer(player, "you have been unverified"); // TODO: add message to config
             }
+
+            DiscordVerification.getInstance().getDiscord().performRoleUpdate(player, false);
 
             deleteUser(player);
 

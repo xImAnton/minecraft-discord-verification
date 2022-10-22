@@ -8,7 +8,9 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
@@ -21,6 +23,7 @@ import javax.security.auth.login.LoginException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,6 +39,9 @@ public class DiscordBot extends Thread implements EventListener {
 
     private JDA client;
     private final String token;
+    private Guild guild;
+    private final LinkedList<Role> rolesToAdd = new LinkedList<>();
+    private final LinkedList<Role> rolesToRemove = new LinkedList<>();
 
     private final Map<String, Command> commands = new HashMap<>();
 
@@ -56,6 +62,7 @@ public class DiscordBot extends Thread implements EventListener {
     /**
      * Called when a new discord message is received
      * calls the commands when a command is detected
+     *
      * @param e the MessageCreateEvent
      */
     public void onMessage(MessageReceivedEvent e) {
@@ -83,12 +90,56 @@ public class DiscordBot extends Thread implements EventListener {
 
     /**
      * Removes the account of a user if he leaves the guild
+     *
      * @param e the MemberLeaveEvent
      */
     public void onMemberLeave(GuildMemberRemoveEvent e) {
         if (e.getGuild().getIdLong() != DiscordVerification.getInstance().getGuildId()) return;
         DiscordVerification.getInstance().getDB().removeAccountOfUser(e.getUser().getIdLong());
         updateStatus();
+    }
+
+    /**
+     * Updates roles of a newly verified/unverified member according to the config
+     *
+     * @param ign the ign that was verified/unverified
+     * @param wasVerified whether the user was verified
+     */
+    public void performRoleUpdate(String ign, boolean wasVerified) throws SQLException {
+        long userId = DiscordVerification.getInstance().getDB().getUserIdForIGN(ign);
+        if (userId == 0) return;
+
+        performRoleUpdate(userId, wasVerified);
+    }
+
+    /**
+     * Updates roles of a newly verified/unverified member according to the config
+     *
+     * @param userId the discord user id of the user that was verified/unverified
+     * @param wasVerified whether the user was verified
+     */
+    public void performRoleUpdate(long userId, boolean wasVerified) {
+        if (userId == 0) return;
+
+        RestActionStack requests = new RestActionStack();
+
+        for (Role roleToAdd : rolesToAdd) {
+            if (wasVerified) {
+                requests.add(guild.addRoleToMember(userId, roleToAdd));
+            } else {
+                requests.add(guild.removeRoleFromMember(userId, roleToAdd));
+            }
+        }
+
+        for (Role roleToRemove : rolesToRemove) {
+            if (wasVerified) {
+                requests.add(guild.removeRoleFromMember(userId, roleToRemove));
+            } else {
+                requests.add(guild.addRoleToMember(userId, roleToRemove));
+            }
+        }
+
+        requests.queue();
     }
 
     /**
@@ -100,6 +151,7 @@ public class DiscordBot extends Thread implements EventListener {
             client = JDABuilder.createDefault(token)
                     .addEventListeners(this)
                     .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                    .enableIntents(GatewayIntent.GUILD_MESSAGES)
                     .build();
         } catch (LoginException e) {
             e.printStackTrace();
@@ -119,6 +171,16 @@ public class DiscordBot extends Thread implements EventListener {
 
     private void onReady() {
         DiscordVerification.getInstance().getPlugin().getLogger().info("Discord is ready!");
+
+        guild = client.getGuildById(DiscordVerification.getInstance().getGuildId());
+
+        for (long roleToAdd : DiscordVerification.getInstance().getRolesToAdd()) {
+            rolesToAdd.add(guild.getRoleById(roleToAdd));
+        }
+        for (long roleToRemove : DiscordVerification.getInstance().getRolesToRemove()) {
+            rolesToRemove.add(guild.getRoleById(roleToRemove));
+        }
+
         updateStatus();
     }
 

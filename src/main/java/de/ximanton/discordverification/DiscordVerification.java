@@ -6,6 +6,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 public class DiscordVerification {
@@ -28,6 +30,32 @@ public class DiscordVerification {
     private DatabaseConnector db;
     private DiscordBot discord;
     private IDiscordVerification plugin;
+    private final LinkedList<Long> rolesToAdd = new LinkedList<>();
+    private final LinkedList<Long> rolesToRemove = new LinkedList<>();
+
+    /**
+     * Initializes and parses roles to add or remove on verification/unverification
+     * from the config
+     * @param roles the raw string list from the config
+     */
+    private void setupRolesOnVerify(List<String> roles) {
+        for (String role : roles) {
+            long roleId;
+
+            try {
+                roleId = Long.parseLong(role.substring(1).trim());
+            } catch (NumberFormatException e) {
+                plugin.getLogger().warning("Ignoring invalid `roles-on-verify` entry: \"" + roles + "\"");
+                return;
+            }
+
+            if (role.startsWith("+")) {
+                rolesToAdd.add(roleId);
+            } else if (role.startsWith("-")) {
+                rolesToRemove.add(roleId);
+            }
+        }
+    }
 
     public void setupBungee(IDiscordVerification plugin, Configuration config) {
         this.plugin = plugin;
@@ -37,6 +65,7 @@ public class DiscordVerification {
         kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify", true);
         guildId = config.getLong("guild-id");
         verificationLimit = config.getInt("verification-limit", -1);
+        setupRolesOnVerify(config.getStringList("roles-on-verify"));
 
         messages = new MessageManager(config.getSection("messages"));
         setupCommons();
@@ -50,6 +79,7 @@ public class DiscordVerification {
         kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify", true);
         guildId = config.getLong("guild-id");
         verificationLimit = config.getInt("verification-limit", -1);
+        setupRolesOnVerify(config.getStringList("roles-on-verify"));
 
         messages = new MessageManager(Objects.requireNonNull(config.getConfigurationSection("messages")));
         setupCommons();
@@ -112,6 +142,11 @@ public class DiscordVerification {
         return kickPlayersOnUnverify;
     }
 
+    public LinkedList<Long> getRolesToAdd() {
+        return rolesToAdd;
+    }
 
-
+    public LinkedList<Long> getRolesToRemove() {
+        return rolesToRemove;
+    }
 }

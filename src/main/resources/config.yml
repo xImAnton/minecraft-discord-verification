@@ -20,6 +20,15 @@ kick-players-on-unverify: true
 # [REQUIRED, when discord-token is supplied] The ID if your discord server (guild)
 guild-id:
 
+# Roles to add/remove on verification
+# - Prefix with +/- to indicate whether to add (+) or remove (-) the role on verification
+# - Roles prefixed with `-` are added back and roles with `+` are removed on unverification
+# - Note: you have to add quotation marks around the entry, otherwise it will be read as a
+#   number and not work, eg.: "+1234567890123456789" or "-1234567890123456789"
+roles-on-verify:
+#  - "+1234567890123456789"
+#  - "-9876543210987654321"
+
 # Messages to send on specific events
 messages:
   # Displayed as kick message, if the player isn't verified
