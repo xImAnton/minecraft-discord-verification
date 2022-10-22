@@ -7,10 +7,7 @@ import de.ximanton.discordverification.discord.command.WhoIsCommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
@@ -97,6 +94,21 @@ public class DiscordBot extends Thread implements EventListener {
         if (e.getGuild().getIdLong() != DiscordVerification.getInstance().getGuildId()) return;
         DiscordVerification.getInstance().getDB().removeAccountOfUser(e.getUser().getIdLong());
         updateStatus();
+    }
+
+    public void resetNickname(String player) throws SQLException {
+        long userId = DiscordVerification.getInstance().getDB().getUserIdForIGN(player);
+        if (userId == 0) return;
+
+        resetNickname(userId);
+    }
+
+    public void resetNickname(long userId) {
+        if (userId == 0) return;
+
+        Member m = guild.retrieveMemberById(userId).complete();
+
+        guild.modifyNickname(m, m.getUser().getName()).queue();
     }
 
     /**

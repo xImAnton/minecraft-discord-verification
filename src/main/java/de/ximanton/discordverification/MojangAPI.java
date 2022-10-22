@@ -1,6 +1,7 @@
 package de.ximanton.discordverification;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -30,6 +31,30 @@ public abstract class MojangAPI {
             JsonElement id = new JsonParser().parse(r).getAsJsonObject().get("id");
             if (id == null) return null;
             return id.getAsString();
+        } catch (IOException ignored) {}
+        return null;
+    }
+
+    public record PlayerResponse(String name, String uuid) {}
+
+    /**
+     * Fetches the uuid and name with correct capitalization for a playername from the mojang api
+     * @param playerName the player to fetch
+     * @return A PlayerResponse or null if the player doesn't exist
+     */
+    public static PlayerResponse getPlayerUUIDAndName(String playerName) {
+        URL url;
+        try {
+            url = new URL(playerUUIDEndpoint + playerName);
+            // open connection to the mojang api endpoint
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            String r = getResponseContent(con);
+            if (r == null) return null;
+            if (r.isEmpty()) return null;
+            JsonObject data = new JsonParser().parse(r).getAsJsonObject();
+            JsonElement id = data.get("id");
+            if (id == null) return null;
+            return new PlayerResponse(data.get("name").getAsString(), id.getAsString());
         } catch (IOException ignored) {}
         return null;
     }

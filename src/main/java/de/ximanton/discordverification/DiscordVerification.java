@@ -32,6 +32,8 @@ public class DiscordVerification {
     private IDiscordVerification plugin;
     private final LinkedList<Long> rolesToAdd = new LinkedList<>();
     private final LinkedList<Long> rolesToRemove = new LinkedList<>();
+    private boolean changeDiscordName;
+    private String nickNameScheme;
 
     /**
      * Initializes and parses roles to add or remove on verification/unverification
@@ -60,12 +62,14 @@ public class DiscordVerification {
     public void setupBungee(IDiscordVerification plugin, Configuration config) {
         this.plugin = plugin;
 
-        dbPath = config.getString("database-path");
+        dbPath = config.getString("database-path", "db.db");
         discordToken = config.getString("discord-token");
         kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify", true);
         guildId = config.getLong("guild-id");
         verificationLimit = config.getInt("verification-limit", -1);
         setupRolesOnVerify(config.getStringList("roles-on-verify"));
+        changeDiscordName = config.getBoolean("change-discord-name", false);
+        nickNameScheme = config.getString("nick-name-scheme", "$username");
 
         messages = new MessageManager(config.getSection("messages"));
         setupCommons();
@@ -74,12 +78,14 @@ public class DiscordVerification {
     public void setupBukkit(IDiscordVerification plugin, FileConfiguration config) {
         this.plugin = plugin;
 
-        dbPath = config.getString("database-path");
+        dbPath = config.getString("database-path", "db.db");
         discordToken = config.getString("discord-token");
         kickPlayersOnUnverify = config.getBoolean("kick-players-on-unverify", true);
         guildId = config.getLong("guild-id");
         verificationLimit = config.getInt("verification-limit", -1);
         setupRolesOnVerify(config.getStringList("roles-on-verify"));
+        changeDiscordName = config.getBoolean("change-discord-name", false);
+        nickNameScheme = config.getString("nick-name-scheme", "$username");
 
         messages = new MessageManager(Objects.requireNonNull(config.getConfigurationSection("messages")));
         setupCommons();
@@ -148,5 +154,13 @@ public class DiscordVerification {
 
     public LinkedList<Long> getRolesToRemove() {
         return rolesToRemove;
+    }
+
+    public boolean isChangeDiscordName() {
+        return changeDiscordName;
+    }
+
+    public String formatNickName(String username, String ign) {
+        return nickNameScheme.replace("$username", username).replace("$ign", ign);
     }
 }

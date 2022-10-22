@@ -140,7 +140,7 @@ public class DatabaseConnector {
                 return InsertPlayerReturn.ALREADY_EXISTS;
             }
 
-            // check only for already verified players, if a discord user executes the verify command
+            // check only for already verified players if a discord user executes the verify command
             if (authorId != 0) {
                 // Check if the discord user already had a verified account
                 Optional<String> isUserVerified = getUserIGN(authorId);
@@ -148,6 +148,7 @@ public class DatabaseConnector {
                     if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
                         DiscordVerification.getInstance().getPlugin().kickPlayer(isUserVerified.get(), DiscordVerification.getInstance().getMessages().formatKickOverridden(playerName));
                     }
+
                     // Override previous verified ign
                     updatePlayerIGN(playerName, authorId);
                     return InsertPlayerReturn.OVERRIDDEN;
@@ -251,6 +252,10 @@ public class DatabaseConnector {
 
             if (DiscordVerification.getInstance().isKickPlayersOnUnverify()) {
                 DiscordVerification.getInstance().getPlugin().kickPlayer(player, DiscordVerification.getInstance().getMessages().getKickUnverify());
+            }
+
+            if (DiscordVerification.getInstance().isChangeDiscordName()) {
+                DiscordVerification.getInstance().getDiscord().resetNickname(player);
             }
 
             DiscordVerification.getInstance().getDiscord().performRoleUpdate(player, false);

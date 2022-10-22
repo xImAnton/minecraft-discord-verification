@@ -29,6 +29,15 @@ roles-on-verify:
 #  - "+1234567890123456789"
 #  - "-9876543210987654321"
 
+# Whether to change the discord name of a user according to the scheme below on verification
+# - don't forget to forbid users to change their nicknames using role permissions
+change-discord-name: false
+
+# Scheme for discord usernames
+# - $username => the discord account name of the player
+# - $ign => minecraft name of the user
+nick-name-scheme: "$username [$ign]"
+
 # Messages to send on specific events
 messages:
   # Kick messages
