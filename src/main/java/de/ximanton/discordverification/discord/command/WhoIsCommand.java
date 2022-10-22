@@ -24,6 +24,10 @@ public class WhoIsCommand implements Command {
 
             if (userId != 0) {
                 user = DiscordVerification.getInstance().getDiscord().getClient().getUserById(userId);
+
+                if (user == null) {
+                    user = DiscordVerification.getInstance().getDiscord().getClient().retrieveUserById(userId).complete();
+                }
             }
 
             String returnMsg = user != null ? DiscordVerification.getInstance().getMessages().formatWhoisSuccess(user, ign) : DiscordVerification.getInstance().getMessages().formatWhoisNotVerified(ign);
